@@ -1,0 +1,26 @@
+[
+  {
+    "id": 0,
+    "titulo": "SQL injection",
+    "situacao": "Minha aplicação realiza consultas SQL ao banco de dados com base em informações fornecidas pelos usuários",
+    "boaConduta": "Ao construir as consultas SQL, minha aplicação utiliza a técnica da parametrização para prevenir que um usuário malicioso tente modificar a natureza da operação.",
+    "maConduta": "Ao construir as consultas SQL, minha aplicação simplesmente concatena as entradas fornecidas pelo usuário, sem validação ou tratamento.",
+    "efeitoMaConduta": "Um usuário malicioso poderia manipular uma operação para realizar consultas indevidas, alterar dados do banco ou modificar permissões de acesso."
+  },
+  {
+    "id": 1,
+    "titulo": "Insecure Direct Object Reference (IDOR)",
+    "situacao": "Minha aplicação web contém uma área de acesso restrito a administradores",
+    "boaConduta": "Ao receber uma requisição restrita a administradores (/admin), minha aplicação valida permissões de acesso com base no usuário efetivamente autenticado, não em parâmetros fornecidos pela URL.",
+    "maConduta": "Ao receber uma requisição restrita a administradores (/admin), minha aplicação apenas verifica se o identificador de usuário informado como parâmetro na URL (?user_id=123) é válido.",
+    "efeitoMaConduta": "Um cliente malicioso, de posse de um identificador válido, poderia acessar a área restrita sem autenticação."
+  },
+  {
+    "id": 2,
+    "titulo": "Insecure Direct Object Reference (IDOR)",
+    "situacao": "Minha aplicação web de comércio eletrônico prevê uma rota específica para cancelamento de pedidos, com base em seu número identificador (/cancelar_pedido?id=123)",
+    "boaConduta": "Ao receber uma requisição de cancelamento de pedido, antes de dar acesso à página de cancelamento, minha aplicação verifica se o usuário que fez o pedido originalmente corresponde ao usuário autenticado que está realizando a requisição de cancelamento.",
+    "maConduta": "Ao receber uma requisição de cancelamento de pedido, minha aplicação dá acesso à página de cancelamento desde que o identificador fornecido na URL seja válido.",
+    "efeitoMaConduta": "Um usuário malicioso, de posse de um identificador válido, poderia cancelar pedidos de terceiros."
+  }
+]

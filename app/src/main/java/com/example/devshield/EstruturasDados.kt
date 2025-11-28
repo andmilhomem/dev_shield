@@ -1,6 +1,16 @@
 package com.example.devshield
 
-class Mapa(val jogador: Jogador, val adversario: Jogador) {
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+
+enum class Tela { NOVO_JOGO, NOVO_MAPA, SITUACAO, CONDUTA, EFEITO_CONDUTA, INSPECAO, ENCERRAMENTO, FEEDBACK }
+
+enum class Conduta { BOA, MA }
+
+enum class DesempenhoJogada { ACERTOU, ERROU_CONDUTA_E_BOA, ERROU_CONDUTA_E_MA }
+
+class Mapa(val jogador: Jogador, val adversario: Jogador, var vm : MainViewModel) {
     init {
         jogador.associaMapa(this)
     }
@@ -18,17 +28,9 @@ class Mapa(val jogador: Jogador, val adversario: Jogador) {
         }
     }
 
-    var numVirusRevelados = 0
-    var numEnderecosEscondidos = NUM_MAX_LINHAS * NUM_MAX_COLUNAS
-    var numBackupsRestantes = NUM_BACKUPS_INICIAL
-
-    fun incrementaVirusRevelados() {
-        numVirusRevelados++
-    }
-
-    fun decrementaBackups() {
-        numBackupsRestantes--
-    }
+    var numVirusRevelados by mutableStateOf(0)
+    var numEnderecosEscondidos by mutableStateOf(NUM_MAX_LINHAS * NUM_MAX_COLUNAS)
+    var numBackupsRestantes by mutableStateOf(NUM_BACKUPS_INICIAL)
 
     fun revelaEndereco(linha: Int, coluna: Int) {
         // Obtém objeto correspondente
@@ -53,20 +55,18 @@ class Mapa(val jogador: Jogador, val adversario: Jogador) {
 
         // Jogador perdeu
         if (statusMapa == -1) {
-            vencedor = adversario
-            encerraJogo()
+            encerraJogo(vm, adversario.id)
         }
         // Jogador venceu
         if (statusMapa == 1) {
-            vencedor = jogador
-            encerraJogo()
+            encerraJogo(vm, jogador.id)
         }
         // Jogo continua
+        vm.jogadaTerminou = true
         if (adjacentesNaoContemVirus) {
-            repeteInspecao()
+            vm.repeteJogada = true
         } else {
-            mapaAtual = adversario.mapa // troca o mapa
-            iniciaRodada()
+            vm.jogadorAtual = adversario.id
         }
     }
 
@@ -124,9 +124,6 @@ class Mapa(val jogador: Jogador, val adversario: Jogador) {
         }
         return adjacentesContemVirus
     }
-    fun escondeEndereco(linha: Int, coluna: Int) {
-        mapaEnderecos[linha][coluna].escondeEndereco()
-    }
     fun checaStatusMapa(): Int {
         return when {
             numBackupsRestantes < 0 -> -1 // jogador perdeu
@@ -137,8 +134,8 @@ class Mapa(val jogador: Jogador, val adversario: Jogador) {
 }
 
 class Endereco(var linha: Int, var coluna: Int) {
-    var estaVisivel = true
-    var idVirus = -1
+    var estaVisivel by mutableStateOf(true)
+    var idVirus by mutableStateOf(-1)
 
     fun escondeEndereco() {
         estaVisivel = false
@@ -163,13 +160,23 @@ class Endereco(var linha: Int, var coluna: Int) {
 
 class Jogador(val id: Int, val nome: String) {
     lateinit var mapa: Mapa
-    val pontuacao = 0
-    val respostasErradas = mutableListOf<Questao>()
+    var pontuacao by mutableStateOf(0)
+    var respostasErradas = mutableListOf<Questao>()
 
     fun associaMapa(mapaAssociado: Mapa) {
         mapa = mapaAssociado
     }
 }
 
-class Questao(val id: Int, val titulo: String, val situacao: String, val boaConduta: String, val maConduta: String, val feedbackMaConduta: String) {
+class Questao(val id: Int,
+              val titulo: String,
+              val situacao: String,
+              val boaConduta: String,
+              val maConduta: String,
+              val efeitoMaConduta: String,
+              var condutasDisponiveis: MutableList<Conduta> = mutableListOf(Conduta.BOA, Conduta.MA)) {
+
+    fun utilizaConduta(conduta: Conduta) {
+        condutasDisponiveis.remove(conduta)
+    }
 }

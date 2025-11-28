@@ -26,174 +26,25 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.ui.platform.LocalContext
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // instancia View Model
+        val minhaViewModel = MainViewModel()
 
+        // lê questões do JSON
+        minhaViewModel.carregarQuestoes(applicationContext)
+
+        // inicializa a tela base
         setContent {
             DevShieldTheme {
-                TelaBase( )
+                TelaBase(minhaViewModel )
             }
         }
     }
 }
 
-// Classe que declara e manipula variáveis
-class MainViewModel : ViewModel() {
-    var texto1 by mutableStateOf("Olá")
-    var texto2 by mutableStateOf("Minha Tela")
-}
 
-// Tela base
-@Preview(showBackground = true)
-@Composable
-fun TelaBase(vm: MainViewModel = MainViewModel()) {
-    // Instancia view model, em que variáveis serão declaradas e manipuladas
-    val vm: MainViewModel = viewModel()
-
-    // Texto de teste
-    val txt = "X"
-
-    // Tela base
-    Column(modifier = Modifier
-        .fillMaxSize()
-        .padding(WindowInsets.safeDrawing.asPaddingValues()) // respeita status bar e barra de navegação
-    ) {
-        // Menu superior (Row)
-        Row(modifier = Modifier
-            .weight(1f)
-            .fillMaxWidth()
-        ) {
-            // Nome da aplicação (Box)
-            Box(modifier = Modifier
-                .weight(3f)
-                .fillMaxHeight(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text ( text = txt )
-            }
-            // Pontuação (Box)
-            Box(modifier = Modifier
-                .weight(2f)
-                .fillMaxHeight(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text ( text = txt )
-            }
-            // Sair (Box)
-            Box(modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text ( text = txt )
-            }
-        }
-
-        // Texto superior (com ou sem ícone) (Box)
-        Box(modifier = Modifier
-            .weight(1f)
-            .fillMaxWidth(),
-            contentAlignment = Alignment.Center
-        ) {
-            Text ( text = txt )
-        }
-        // Conteúdo principal (Row)
-        Row(modifier = Modifier
-            .weight(4f)
-            .fillMaxWidth()
-        ) {
-            // Lateral esquerda (Column)
-            Column(modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight()
-            ) {
-                // Ícones de vírus (Column)
-                Column(modifier = Modifier
-                    .weight(3f)
-                    .fillMaxWidth()
-                ) {
-                    Box(modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text ( text = txt )
-                    }
-                    Box(modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text ( text = txt )
-                    }
-                    Box(modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text ( text = txt )
-                    }
-                    Box(modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text ( text = txt )
-                    }
-                    Box(modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text ( text = txt )
-                    }
-                }
-                // Botão de retorno (Box)
-                Box(modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text ( text = txt )
-                }
-            }
-
-            // Centro (Box)
-           Box(modifier = Modifier
-                .weight(6f)
-                .fillMaxHeight(),
-               contentAlignment = Alignment.Center
-           ) {
-               Text ( text = txt )
-            }
-                // 2 alternativas:
-                // Texto curto + campo minado (Column com duas Boxes)
-                // Texto longo + botões (Column com duas Boxes)
-            // Lateral direita (Column)
-            Column(modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight()
-            ) {
-                // Espaço em branco (Box)
-                Box(modifier = Modifier
-                    .weight(3f)
-                    .fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text ( text = txt )
-                }
-                // Botão de avanço (Box)
-                Box(modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text ( text = txt )
-                }
-            }
-        }
-    }
-}
 
