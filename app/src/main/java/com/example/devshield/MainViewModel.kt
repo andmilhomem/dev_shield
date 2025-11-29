@@ -13,7 +13,6 @@ import java.io.InputStreamReader
 // Classe que declara e manipula variáveis
 class MainViewModel : ViewModel() {
     var telaAtual by mutableStateOf(Tela.NOVO_JOGO)
-    var mapaAtual by mutableStateOf(1)
     var jogadorAtual by mutableStateOf(1)
     var situacaoAtual by mutableStateOf("")
     var textoCondutaAtual by mutableStateOf("")
@@ -21,9 +20,8 @@ class MainViewModel : ViewModel() {
     var desempenhoJogadaAtual by mutableStateOf( DesempenhoJogada.ACERTOU)
     lateinit var questaoAtual: Questao
 
-    var repeteJogada by mutableStateOf(false)
-    var jogadaTerminou by mutableStateOf(false)
     var jogo_comecou by mutableStateOf(false)
+    var resultadoInspecaoAtual by mutableStateOf(ResultadoInspecao.PENDENTE)
 
     lateinit var listaQuestoesJSON : List<Questao>
     lateinit var listaQuestoesAtual : MutableList<Questao>

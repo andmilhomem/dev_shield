@@ -10,6 +10,32 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import com.example.devshield.R
+import androidx.compose.material3.Typography
+
+val ZenDots = FontFamily(
+    Font(R.font.zendots_regular, weight = FontWeight.Normal)
+)
+val AppTypography = Typography(
+    displayLarge = Typography().displayLarge.copy(fontFamily = ZenDots),
+    displayMedium = Typography().displayMedium.copy(fontFamily = ZenDots),
+    displaySmall = Typography().displaySmall.copy(fontFamily = ZenDots),
+    headlineLarge = Typography().headlineLarge.copy(fontFamily = ZenDots),
+    headlineMedium = Typography().headlineMedium.copy(fontFamily = ZenDots),
+    headlineSmall = Typography().headlineSmall.copy(fontFamily = ZenDots),
+    titleLarge = Typography().titleLarge.copy(fontFamily = ZenDots),
+    titleMedium = Typography().titleMedium.copy(fontFamily = ZenDots),
+    titleSmall = Typography().titleSmall.copy(fontFamily = ZenDots),
+    bodyLarge = Typography().bodyLarge.copy(fontFamily = ZenDots),
+    bodyMedium = Typography().bodyMedium.copy(fontFamily = ZenDots),
+    bodySmall = Typography().bodySmall.copy(fontFamily = ZenDots),
+    labelLarge = Typography().labelLarge.copy(fontFamily = ZenDots),
+    labelMedium = Typography().labelMedium.copy(fontFamily = ZenDots),
+    labelSmall = Typography().labelSmall.copy(fontFamily = ZenDots)
+)
 
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
@@ -52,7 +78,7 @@ fun DevShieldTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography,
+        typography = AppTypography,
         content = content
     )
 }

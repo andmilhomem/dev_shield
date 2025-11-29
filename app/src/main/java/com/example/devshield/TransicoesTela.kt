@@ -6,7 +6,6 @@ import androidx.compose.runtime.setValue
 
 fun reiniciaJogo(vm: MainViewModel) {
     // Retorna variáveis de ViewModel aos valores iniciais
-    vm.mapaAtual = 1
     vm.jogadorAtual = 1
     vm.jogo_comecou = false
     vm.listaQuestoesAtual = vm.listaQuestoesJSON.toMutableList()
@@ -22,8 +21,6 @@ fun editaMapa(vm: MainViewModel) {
     vm.telaAtual = Tela.NOVO_MAPA
 }
 fun iniciaNovaRodada(vm: MainViewModel) { // Supõe que jogadorAtual está atualizado
-    vm.repeteJogada = false
-    vm.jogadaTerminou = false
 
     // Primeira rodada do jogo
     if (vm.jogo_comecou == false) {
@@ -92,12 +89,24 @@ fun exibeEfeitoConduta(vm: MainViewModel, avaliacaoJogador: Conduta) {
     }
     vm.telaAtual = Tela.EFEITO_CONDUTA
 }
-
 fun exibeMapa(vm: MainViewModel) {
+    vm.resultadoInspecaoAtual = ResultadoInspecao.PENDENTE
     vm.telaAtual = Tela.INSPECAO
 }
+
+fun inspecionaEndereco(vm: MainViewModel, linha: Int, coluna: Int)  {
+    // Identifica objeto do mapa atual
+    var mapaAtual: Mapa
+    if (vm.jogadorAtual == 1) mapaAtual = vm.mapaJogador1
+    else mapaAtual = vm.mapaJogador2
+
+    // Revela endereço indicado
+    mapaAtual.revelaEndereco(linha, coluna)
+}
+
 fun encerraJogo(vm: MainViewModel, vencedor: Int) {
     vm.vencedor = vencedor
+    vm.jogadorAtual = 1
     vm.telaAtual = Tela.ENCERRAMENTO
 }
 

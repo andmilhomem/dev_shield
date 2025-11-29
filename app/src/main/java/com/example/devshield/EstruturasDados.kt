@@ -9,6 +9,7 @@ enum class Tela { NOVO_JOGO, NOVO_MAPA, SITUACAO, CONDUTA, EFEITO_CONDUTA, INSPE
 enum class Conduta { BOA, MA }
 
 enum class DesempenhoJogada { ACERTOU, ERROU_CONDUTA_E_BOA, ERROU_CONDUTA_E_MA }
+enum class ResultadoInspecao { PENDENTE, VIRUS, NAO_VIRUS, REPETE_JOGADA, ACABOU_MEMORIA, REVELOU_TUDO }
 
 class Mapa(val jogador: Jogador, val adversario: Jogador, var vm : MainViewModel) {
     init {
@@ -36,7 +37,7 @@ class Mapa(val jogador: Jogador, val adversario: Jogador, var vm : MainViewModel
         // Obtém objeto correspondente
         val endereco = mapaEnderecos[linha][coluna]
 
-        // Variável de controle para o caso de adjacentes não conterem vírus
+        // Variáveis de controle para o caso de adjacentes não conterem vírus
         var adjacentesNaoContemVirus = true
 
         // Revela o endereço
@@ -51,23 +52,19 @@ class Mapa(val jogador: Jogador, val adversario: Jogador, var vm : MainViewModel
             // Revela adjacentes e checa se contêm vírus
             adjacentesNaoContemVirus = revelaEnderecosAdjacentes(endereco)
         }
+
         val statusMapa = checaStatusMapa()
 
         // Jogador perdeu
-        if (statusMapa == -1) {
-            encerraJogo(vm, adversario.id)
-        }
+        if (statusMapa == -1) vm.resultadoInspecaoAtual = ResultadoInspecao.ACABOU_MEMORIA
         // Jogador venceu
-        if (statusMapa == 1) {
-            encerraJogo(vm, jogador.id)
-        }
-        // Jogo continua
-        vm.jogadaTerminou = true
-        if (adjacentesNaoContemVirus) {
-            vm.repeteJogada = true
-        } else {
-            vm.jogadorAtual = adversario.id
-        }
+        else if (statusMapa == 1) vm.resultadoInspecaoAtual = ResultadoInspecao.REVELOU_TUDO
+        // Repete jogada
+        else if (adjacentesNaoContemVirus) vm.resultadoInspecaoAtual = ResultadoInspecao.REPETE_JOGADA
+        // Era vírus
+        else if (endereco.contemVirus()) vm.resultadoInspecaoAtual = ResultadoInspecao.VIRUS
+        // Não era vírus
+        else vm.resultadoInspecaoAtual = ResultadoInspecao.NAO_VIRUS
     }
 
     fun visitaEnderecoAdjacente(enderecoVisitado: Endereco): Boolean {
