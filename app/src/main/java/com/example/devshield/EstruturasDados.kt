@@ -1,6 +1,7 @@
 package com.example.devshield
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 
@@ -29,10 +30,17 @@ class Mapa(val jogador: Jogador, val adversario: Jogador, var vm : MainViewModel
         }
     }
 
+    var mapaColunaVirus = mutableStateListOf(0, 1, 2, 3, 4)
+
+    var numVirusPosicionados by mutableStateOf(0)
     var numVirusRevelados by mutableStateOf(0)
     var numEnderecosEscondidos by mutableStateOf(NUM_MAX_LINHAS * NUM_MAX_COLUNAS)
     var numBackupsRestantes by mutableStateOf(NUM_BACKUPS_INICIAL)
 
+    fun utilizaVirus(idVirus: Int) {
+        this.numVirusPosicionados++
+        this.mapaColunaVirus[idVirus] = -1
+    }
     fun revelaEndereco(linha: Int, coluna: Int) {
         // Obtém objeto correspondente
         val endereco = mapaEnderecos[linha][coluna]
@@ -135,23 +143,30 @@ class Endereco(var linha: Int, var coluna: Int) {
     var idVirus by mutableStateOf(-1)
 
     fun escondeEndereco() {
-        estaVisivel = false
+        this.estaVisivel = false
     }
     fun revelaEndereco() {
-        estaVisivel = true
+        this.estaVisivel = true
     }
     fun posicionaVirus(idVirusPosicionado: Int) {
         idVirus = idVirusPosicionado
     }
+    fun recebeVirus(idVirus: Int, mapa: Mapa) {
+        this.idVirus = idVirus
+        mapa.utilizaVirus(idVirus)
+    }
+    fun perdeVirus() {
+        this.idVirus = -1
+    }
     fun contemVirus(): Boolean {
         return when {
-            idVirus == -1 -> false
+            this.idVirus == -1 -> false
             else -> true
         }
     }
     fun setLinhaColuna(i: Int, j: Int) {
-        linha = i
-        coluna = j
+        this.linha = i
+        this.coluna = j
     }
 }
 

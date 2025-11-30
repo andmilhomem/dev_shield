@@ -31,15 +31,55 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import android.app.Activity
+import android.content.ClipData
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
+
+
+import androidx.compose.ui.draganddrop.DragAndDropSourceModifierNode
+import androidx.compose.ui.draganddrop.DragAndDropTargetModifierNode
+import androidx.compose.ui.draganddrop.DragAndDropTransferData
+import androidx.compose.ui.draganddrop.DragAndDropStartTransferScope
+import androidx.compose.ui.draganddrop.DragAndDropEvent
+import androidx.compose.ui.draganddrop.DragAndDropTarget
+
+
+//imports do tutorial
+/*import androidx.compose.foundation.draganddrop.dragAndDropSource
+import androidx.compose.foundation.draganddrop.dragAndDropTarget
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.draganddrop.DragAndDropEvent
+import androidx.compose.ui.draganddrop.DragAndDropTarget
+import androidx.compose.ui.draganddrop.DragAndDropTransferData
+import androidx.compose.ui.draganddrop.mimeTypes
+import androidx.compose.ui.draganddrop.toAndroidDragEvent
+*/
+
+
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.draganddrop.dragAndDropSource
+import androidx.compose.foundation.draganddrop.dragAndDropTarget
+import androidx.compose.ui.draganddrop.mimeTypes
+import androidx.compose.ui.draganddrop.toAndroidDragEvent
+import androidx.compose.foundation.draganddrop.dragAndDropTarget
+import android.content.ClipDescription
+import androidx.compose.foundation.border
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.BugReport
+import androidx.compose.material.icons.filled.Coronavirus
+import androidx.compose.material.icons.filled.Webhook
+import androidx.compose.material.icons.filled.Gesture
+import androidx.compose.material.icons.filled.Storm
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.viewmodel.compose.viewModel
+
 
 
 @Preview(showBackground = true)
@@ -65,6 +105,14 @@ fun TelaBase(vm: MainViewModel = MainViewModel()) {
 
     // Variável necessária para encerra aplicação
     val activity = LocalContext.current as? Activity
+
+    // Ícones dos virus
+    val icones = listOf(Icons.Default.Webhook,
+        Icons.Default.BugReport,
+        Icons.Default.Coronavirus,
+        Icons.Default.Webhook,
+        Icons.Default.Gesture,
+        Icons.Default.Storm)
 
     // Tela base
     Column(modifier = Modifier
@@ -147,12 +195,36 @@ fun TelaBase(vm: MainViewModel = MainViewModel()) {
                     if (vm.telaAtual == Tela.NOVO_MAPA) {
                         // Virus individuais
                         for (i in 0 until 5) {
-                            Box(modifier = Modifier
-                                .weight(1f)
-                                .fillMaxWidth(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text ( text = txt )
+                            if (mapaAtual.mapaColunaVirus[i] != -1) {
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .fillMaxWidth()
+                                        .dragAndDropSource(
+                                            transferData = {
+                                                DragAndDropTransferData(
+                                                    ClipData.newPlainText("origemVirus","${i},-1")
+                                                )
+                                            }
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = icones[i],
+                                            contentDescription = "vírus $i",
+                                            tint = Color.Black,
+                                            modifier = Modifier
+                                                .size(36.dp)
+                                        )
+                                }
+                            }
+                            else {
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .fillMaxWidth(),
+                                    contentAlignment = Alignment.Center
+                                ) { }
                             }
                         }
                     }
@@ -276,7 +348,105 @@ fun TelaBase(vm: MainViewModel = MainViewModel()) {
                         .fillMaxWidth(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text ( text = txt )
+                        // Endereços
+                        for (i in 0 until NUM_MAX_LINHAS) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                            ) {
+                                for (j in 0 until NUM_MAX_COLUNAS) {
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                    ) {
+                                        var modifierBase = Modifier
+
+                                        val enderecoAtual = mapaAtual.mapaEnderecos[i][j]
+
+                                        val dragAndDropTarget =
+                                            object : DragAndDropTarget {
+                                                override fun onDrop(event: DragAndDropEvent): Boolean {
+                                                    val textoOrigem =
+                                                        event.toAndroidDragEvent().clipData
+                                                            .getItemAt(0).text.split(",")
+                                                    val linhaOrigem = textoOrigem[0].toInt()
+                                                    val colunaOrigem = textoOrigem[1].toInt()
+
+                                                    // Vírus vem da área de vírus
+                                                    if (colunaOrigem == -1) {
+                                                        mapaAtual.utilizaVirus(linhaOrigem)
+                                                        enderecoAtual.posicionaVirus(
+                                                            linhaOrigem
+                                                        )
+                                                    }
+                                                    // Vírus vem de outra célula do mapa
+                                                    else {
+                                                        val enderecoAntigo =
+                                                            mapaAtual.mapaEnderecos[linhaOrigem][colunaOrigem]
+                                                        enderecoAtual.posicionaVirus(
+                                                            enderecoAntigo.idVirus
+                                                        )
+                                                        enderecoAntigo.perdeVirus()
+                                                    }
+                                                    return true
+                                                }
+                                            }
+
+                                        // Configura endereço para receber vírus
+                                        if (vm.telaAtual == Tela.NOVO_MAPA) {
+                                            modifierBase
+                                                // Endereço serve como destino de vírus
+                                                .dragAndDropTarget(
+                                                    shouldStartDragAndDrop = { event ->
+                                                        event
+                                                            .mimeTypes()
+                                                            .contains(ClipDescription.MIMETYPE_TEXT_PLAIN)
+                                                    },
+                                                    target = dragAndDropTarget
+                                                )
+                                            if (enderecoAtual.contemVirus()) {
+                                                // Endereço serve como origem de vírus
+                                                modifierBase.dragAndDropSource(
+                                                    transferData = {
+                                                        DragAndDropTransferData(
+                                                            ClipData.newPlainText(
+                                                                "origemVirus",
+                                                                "$i,$j"
+                                                            )
+                                                        )
+                                                    }
+                                                )
+                                            }
+                                        }
+
+                                        // Define cor do box
+                                        if (enderecoAtual.estaVisivel) {
+                                            modifierBase.background(Color.White)
+                                        } else {
+                                            modifierBase.background(Color.Gray)
+                                        }
+
+                                        Box(
+                                            modifierBase
+                                                .fillMaxSize()
+                                                .border(width = 2.dp, color = Color.Black),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+
+                                            if (enderecoAtual.contemVirus()) {
+                                                Icon(
+                                                    imageVector = icones[enderecoAtual.idVirus],
+                                                    contentDescription = "vírus",
+                                                    tint = Color.Black,
+                                                    modifier = Modifier
+                                                        .size(36.dp)
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
                 // Texto grande acima e Botões abaixo
@@ -344,7 +514,7 @@ fun TelaBase(vm: MainViewModel = MainViewModel()) {
                         // UM BOTÃO
                         else {
                             // Identifica texto do botão e ação correspondente
-                            var textoBotao : String = ""
+                            var textoBotao = ""
                             var acao : () -> Unit = {}
 
                             if (vm.telaAtual == Tela.NOVO_JOGO) {
@@ -444,7 +614,7 @@ fun TelaBase(vm: MainViewModel = MainViewModel()) {
                             modifier = Modifier.clickable { acao }
                         )
                     }
-                    else if (vm.telaAtual == Tela.NOVO_MAPA && vm.jogadorAtual == 1) {
+                    else if (vm.telaAtual == Tela.NOVO_MAPA && vm.jogadorAtual == 1 && vm.mapaJogador1.numVirusPosicionados == 5) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                             contentDescription = "Continuar",
@@ -452,7 +622,7 @@ fun TelaBase(vm: MainViewModel = MainViewModel()) {
                             modifier = Modifier.clickable { vm.jogadorAtual = 2 }
                         )
                     }
-                    else if (vm.telaAtual == Tela.NOVO_MAPA && vm.jogadorAtual == 2) {
+                    else if (vm.telaAtual == Tela.NOVO_MAPA && vm.jogadorAtual == 2 && vm.mapaJogador2.numVirusPosicionados == 5) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                             contentDescription = "Continuar",

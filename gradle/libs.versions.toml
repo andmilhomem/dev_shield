@@ -12,6 +12,7 @@ lifecycleViewModelCompose = "2.10.0"  # nova referência
 gson = "2.8.8"
 foundationLayout = "1.9.5"
 uiTextGoogleFonts = "1.9.5"
+foundation = "1.9.5"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -33,6 +34,7 @@ gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 androidx-compose-foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout", version.ref = "foundationLayout" }
 androidx-material-icons = { group = "androidx.compose.material", name = "material-icons-extended" }
 compose-google-fonts = { group = "androidx.compose.ui", name = "ui-text-google-fonts", version.ref = "uiTextGoogleFonts" }
+androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
