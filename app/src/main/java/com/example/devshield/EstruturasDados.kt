@@ -170,7 +170,7 @@ class Endereco(var linha: Int, var coluna: Int) {
     }
 }
 
-class Jogador(val id: Int, val nome: String) {
+class Jogador(val id: Int, var nome: String) {
     lateinit var mapa: Mapa
     var pontuacao by mutableStateOf(0)
     var respostasErradas = mutableListOf<Questao>()

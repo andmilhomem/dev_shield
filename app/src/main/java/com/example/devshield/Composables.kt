@@ -23,6 +23,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,15 +37,12 @@ import android.app.Activity
 import android.content.ClipData
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 
-
-import androidx.compose.ui.draganddrop.DragAndDropSourceModifierNode
-import androidx.compose.ui.draganddrop.DragAndDropTargetModifierNode
 import androidx.compose.ui.draganddrop.DragAndDropTransferData
-import androidx.compose.ui.draganddrop.DragAndDropStartTransferScope
 import androidx.compose.ui.draganddrop.DragAndDropEvent
 import androidx.compose.ui.draganddrop.DragAndDropTarget
-
 
 //imports do tutorial
 /*import androidx.compose.foundation.draganddrop.dragAndDropSource
@@ -59,15 +59,15 @@ import androidx.compose.ui.draganddrop.mimeTypes
 import androidx.compose.ui.draganddrop.toAndroidDragEvent
 */
 
-
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.draganddrop.dragAndDropSource
 import androidx.compose.foundation.draganddrop.dragAndDropTarget
 import androidx.compose.ui.draganddrop.mimeTypes
 import androidx.compose.ui.draganddrop.toAndroidDragEvent
-import androidx.compose.foundation.draganddrop.dragAndDropTarget
 import android.content.ClipDescription
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.BugReport
@@ -77,17 +77,13 @@ import androidx.compose.material.icons.filled.Gesture
 import androidx.compose.material.icons.filled.Storm
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.ui.geometry.Size
+import androidx.compose.material.icons.filled.Stars
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 
-
-
-@Preview(showBackground = true)
 @Composable
-fun TelaBase(vm: MainViewModel = MainViewModel()) {
-    // Texto de teste
-    val txt = "X"
-
+fun TelaBase(vm: MainViewModel) {
     // Identifica objetos correspondentes ao jogador e ao mapa atuais
     var jogadorAtual: Jogador
     var adversario: Jogador
@@ -107,7 +103,7 @@ fun TelaBase(vm: MainViewModel = MainViewModel()) {
     val activity = LocalContext.current as? Activity
 
     // Ícones dos virus
-    val icones = listOf(Icons.Default.Webhook,
+    val icones = listOf(
         Icons.Default.BugReport,
         Icons.Default.Coronavirus,
         Icons.Default.Webhook,
@@ -173,8 +169,33 @@ fun TelaBase(vm: MainViewModel = MainViewModel()) {
             .fillMaxWidth(),
             contentAlignment = Alignment.Center
         ) {
-            if (vm.telaAtual != Tela.ENCERRAMENTO) {
-                Text ( text = txt )
+            if (vm.telaAtual == Tela.NOVO_JOGO) {
+                Icon(
+                    imageVector = Icons.Default.Security,
+                    contentDescription = "Logo",
+                    tint = Color.Black,
+                    modifier = Modifier
+                        .size(36.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text =  "dev_shield",
+                    color = Color.Black,
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    fontSize = 20.sp,
+                    textAlign = TextAlign.Center
+                )
+            }
+            else if (vm.telaAtual != Tela.ENCERRAMENTO) {
+                Text(
+                    text =  jogadorAtual.nome,
+                    color = Color.Black,
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    fontSize = 20.sp,
+                    textAlign = TextAlign.Center
+                )
             }
         }
         // Conteúdo principal (Row)
@@ -201,7 +222,7 @@ fun TelaBase(vm: MainViewModel = MainViewModel()) {
                                         .weight(1f)
                                         .fillMaxWidth()
                                         .dragAndDropSource(
-                                            transferData = {
+                                            transferData = { _ ->
                                                 DragAndDropTransferData(
                                                     ClipData.newPlainText("origemVirus","${i},-1")
                                                 )
@@ -249,13 +270,11 @@ fun TelaBase(vm: MainViewModel = MainViewModel()) {
                         else {
                             vm.jogadorAtual = 1
                         }
-
-                            vm.telaAtual = Tela.SITUACAO
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Voltar",
                             tint = Color.Black,
-                            modifier = Modifier.clickable { acao }
+                            modifier = Modifier.clickable { acao() }
                         )
                     }
                 }
@@ -343,57 +362,147 @@ fun TelaBase(vm: MainViewModel = MainViewModel()) {
                         }
                     }
                     // Mapa
-                    Box(modifier = Modifier
+                    Column(modifier = Modifier
                         .weight(6f)
                         .fillMaxWidth(),
-                        contentAlignment = Alignment.Center
                     ) {
                         // Endereços
                         for (i in 0 until NUM_MAX_LINHAS) {
                             Row(
                                 modifier = Modifier
-                                    .fillMaxSize()
+                                    .weight(1f)
+                                    .fillMaxWidth(),
+                                horizontalArrangement = Arrangement.Center
                             ) {
                                 for (j in 0 until NUM_MAX_COLUNAS) {
-                                    Column(
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                    ) {
-                                        var modifierBase = Modifier
+                                    lateinit var modifierBase: Modifier
 
-                                        val enderecoAtual = mapaAtual.mapaEnderecos[i][j]
+                                    val enderecoAtual = mapaAtual.mapaEnderecos[i][j]
 
-                                        val dragAndDropTarget =
-                                            object : DragAndDropTarget {
-                                                override fun onDrop(event: DragAndDropEvent): Boolean {
-                                                    val textoOrigem =
-                                                        event.toAndroidDragEvent().clipData
-                                                            .getItemAt(0).text.split(",")
-                                                    val linhaOrigem = textoOrigem[0].toInt()
-                                                    val colunaOrigem = textoOrigem[1].toInt()
+                                    val dragAndDropTarget =
+                                        object : DragAndDropTarget {
+                                            override fun onDrop(event: DragAndDropEvent): Boolean {
+                                                val textoOrigem =
+                                                    event.toAndroidDragEvent().clipData
+                                                        ?.getItemAt(0)?.text?.toString()?.split(",")
 
-                                                    // Vírus vem da área de vírus
-                                                    if (colunaOrigem == -1) {
-                                                        mapaAtual.utilizaVirus(linhaOrigem)
-                                                        enderecoAtual.posicionaVirus(
-                                                            linhaOrigem
-                                                        )
-                                                    }
-                                                    // Vírus vem de outra célula do mapa
-                                                    else {
-                                                        val enderecoAntigo =
-                                                            mapaAtual.mapaEnderecos[linhaOrigem][colunaOrigem]
-                                                        enderecoAtual.posicionaVirus(
-                                                            enderecoAntigo.idVirus
-                                                        )
-                                                        enderecoAntigo.perdeVirus()
-                                                    }
-                                                    return true
+                                                var linhaOrigem = -1
+                                                var colunaOrigem = -1
+
+                                                if (textoOrigem != null) {
+                                                    linhaOrigem = textoOrigem[0].toInt()
+                                                    colunaOrigem = textoOrigem[1].toInt()
                                                 }
-                                            }
 
-                                        // Configura endereço para receber vírus
-                                        if (vm.telaAtual == Tela.NOVO_MAPA) {
+                                                // Vírus vem da área de vírus
+                                                if (colunaOrigem == -1) {
+                                                    mapaAtual.utilizaVirus(linhaOrigem)
+                                                    enderecoAtual.posicionaVirus(
+                                                        linhaOrigem
+                                                    )
+                                                }
+                                                // Vírus vem de outra célula do mapa
+                                                else {
+                                                    val enderecoAntigo =
+                                                        mapaAtual.mapaEnderecos[linhaOrigem][colunaOrigem]
+                                                    enderecoAtual.posicionaVirus(
+                                                        enderecoAntigo.idVirus
+                                                    )
+                                                    enderecoAntigo.perdeVirus()
+                                                }
+                                                return true
+                                            }
+                                        }
+
+                                    // Configura endereço para receber vírus
+                                    if (vm.telaAtual == Tela.NOVO_MAPA) {
+                                        if (enderecoAtual.contemVirus() == false) {
+                                            modifierBase = Modifier
+                                                // Endereço serve como destino de vírus
+                                                .dragAndDropTarget(
+                                                    shouldStartDragAndDrop = { event ->
+                                                        event
+                                                            .mimeTypes()
+                                                            .contains(ClipDescription.MIMETYPE_TEXT_PLAIN)
+                                                    },
+                                                    target = dragAndDropTarget
+                                                )
+                                                .aspectRatio(1f)
+                                                .border(width = 2.dp, color = Color.Black)
+                                        } else {
+                                            // Endereço serve como origem de vírus
+                                            modifierBase = Modifier
+                                                .dragAndDropSource(
+                                                    transferData = {
+                                                        DragAndDropTransferData(
+                                                            ClipData.newPlainText(
+                                                                "origemVirus",
+                                                                "$i,$j"
+                                                            )
+                                                        )
+                                                    }
+                                                )
+                                                .aspectRatio(1f)
+                                                .border(width = 2.dp, color = Color.Black)
+                                        }
+                                    }
+                                    // Tela atual é INSPECAO
+                                    else {
+                                        if (enderecoAtual.estaVisivel) {
+                                            modifierBase = Modifier
+                                                .background(Color.White)
+                                                .aspectRatio(1f)
+                                                .border(width = 2.dp, color = Color.Black)
+                                        } else {
+                                            modifierBase = Modifier
+                                                .background(Color.Gray)
+                                                .aspectRatio(1f)
+                                                .border(width = 2.dp, color = Color.Black)
+                                        }
+                                    }
+/*
+                                    val modifierBase = Modifier
+
+                                    val enderecoAtual = mapaAtual.mapaEnderecos[i][j]
+
+                                    val dragAndDropTarget =
+                                        object : DragAndDropTarget {
+                                            override fun onDrop(event: DragAndDropEvent): Boolean {
+                                                val textoOrigem =
+                                                    event.toAndroidDragEvent().clipData
+                                                    ?.getItemAt(0)?.text?.toString()?.split(",")
+
+                                                var linhaOrigem = -1
+                                                var colunaOrigem = -1
+
+                                                if (textoOrigem != null) {
+                                                    linhaOrigem = textoOrigem[0].toInt()
+                                                    colunaOrigem = textoOrigem[1].toInt()
+                                                }
+
+                                                // Vírus vem da área de vírus
+                                                if (colunaOrigem == -1) {
+                                                    mapaAtual.utilizaVirus(linhaOrigem)
+                                                    enderecoAtual.posicionaVirus(
+                                                        linhaOrigem
+                                                    )
+                                                }
+                                                // Vírus vem de outra célula do mapa
+                                                else {
+                                                    val enderecoAntigo =
+                                                        mapaAtual.mapaEnderecos[linhaOrigem][colunaOrigem]
+                                                    enderecoAtual.posicionaVirus(
+                                                        enderecoAntigo.idVirus
+                                                    )
+                                                    enderecoAntigo.perdeVirus()
+                                                }
+                                                return true
+                                            }
+                                        }
+
+                                    // Configura endereço para receber vírus
+                                    if (vm.telaAtual == Tela.NOVO_MAPA) {
+                                        if (enderecoAtual.contemVirus() == false) {
                                             modifierBase
                                                 // Endereço serve como destino de vírus
                                                 .dragAndDropTarget(
@@ -404,9 +513,11 @@ fun TelaBase(vm: MainViewModel = MainViewModel()) {
                                                     },
                                                     target = dragAndDropTarget
                                                 )
-                                            if (enderecoAtual.contemVirus()) {
-                                                // Endereço serve como origem de vírus
-                                                modifierBase.dragAndDropSource(
+                                        }
+                                        else {
+                                            // Endereço serve como origem de vírus
+                                            modifierBase
+                                                .dragAndDropSource(
                                                     transferData = {
                                                         DragAndDropTransferData(
                                                             ClipData.newPlainText(
@@ -416,32 +527,31 @@ fun TelaBase(vm: MainViewModel = MainViewModel()) {
                                                         )
                                                     }
                                                 )
-                                            }
                                         }
+                                    }
 
-                                        // Define cor do box
-                                        if (enderecoAtual.estaVisivel) {
-                                            modifierBase.background(Color.White)
-                                        } else {
-                                            modifierBase.background(Color.Gray)
-                                        }
-
-                                        Box(
-                                            modifierBase
-                                                .fillMaxSize()
-                                                .border(width = 2.dp, color = Color.Black),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-
-                                            if (enderecoAtual.contemVirus()) {
-                                                Icon(
-                                                    imageVector = icones[enderecoAtual.idVirus],
-                                                    contentDescription = "vírus",
-                                                    tint = Color.Black,
-                                                    modifier = Modifier
-                                                        .size(36.dp)
-                                                )
-                                            }
+                                    // Define cor do box
+                                    if (enderecoAtual.estaVisivel) {
+                                        modifierBase.background(Color.White)
+                                    } else {
+                                        modifierBase.background(Color.Gray)
+                                    }
+*/
+                                    Box(
+                                        modifierBase,
+                                         //   .weight(1f)
+                                        //    .aspectRatio(1f)
+                                        //    .border(width = 2.dp, color = Color.Black),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        if (enderecoAtual.contemVirus()) {
+                                            Icon(
+                                                imageVector = icones[enderecoAtual.idVirus],
+                                                contentDescription = "vírus",
+                                                tint = Color.Black,
+                                                modifier = Modifier
+                                                    .size(36.dp)
+                                            )
                                         }
                                     }
                                 }
@@ -451,6 +561,10 @@ fun TelaBase(vm: MainViewModel = MainViewModel()) {
                 }
                 // Texto grande acima e Botões abaixo
                 else {
+                    // Nomes para a tela NOVO_JOGO
+                    var nomeJogador1 by remember { mutableStateOf("") }
+                    var nomeJogador2 by remember { mutableStateOf("") }
+
                     // Texto grande
                     Box(
                         modifier = Modifier
@@ -459,22 +573,225 @@ fun TelaBase(vm: MainViewModel = MainViewModel()) {
                         contentAlignment = Alignment.Center
                     ) {
                         if (vm.telaAtual == Tela.NOVO_JOGO) {
-
+                            // Nome do jogador 1
+                            Row(modifier = Modifier
+                                .fillMaxWidth()
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .weight(4f)
+                                        .fillMaxHeight(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    OutlinedTextField(
+                                        value = nomeJogador1,
+                                        onValueChange = { novoTexto ->
+                                            if (novoTexto.length <= NUM_CARACTERES_NOME_JOGADOR) {
+                                                nomeJogador1 = novoTexto
+                                            }
+                                        },
+                                        label = { Text("Dev 1") },
+                                        placeholder = { Text("Dev 1") },
+                                        colors = OutlinedTextFieldDefaults.colors(
+                                            focusedBorderColor = Color.DarkGray,
+                                            unfocusedBorderColor = Color.Gray,
+                                            focusedTextColor = Color.Black,
+                                            unfocusedTextColor = Color.Black
+                                        ),
+                                        modifier = Modifier
+                                            .fillMaxWidth(0.5f)
+                                            .fillMaxHeight(0.5f)
+                                            .background(Color.Gray, RoundedCornerShape(8.dp)),
+                                        shape = RoundedCornerShape(8.dp),
+                                        singleLine = true
+                                    )
+                                }
+                                // vs.
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .fillMaxHeight(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = "vs.",
+                                        color = Color.Black,
+                                        fontSize = 20.sp
+                                    )
+                                }
+                                // Nome do jogador 2
+                                Box(
+                                    modifier = Modifier
+                                        .weight(4f)
+                                        .fillMaxHeight(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    OutlinedTextField(
+                                        value = nomeJogador2,
+                                        onValueChange = { novoTexto ->
+                                            if (novoTexto.length <= NUM_CARACTERES_NOME_JOGADOR) {
+                                                nomeJogador2 = novoTexto
+                                            }
+                                        },
+                                        label = { Text("Dev 2") },
+                                        placeholder = { Text("Dev 2") },
+                                        colors = OutlinedTextFieldDefaults.colors(
+                                            focusedBorderColor = Color.DarkGray,
+                                            unfocusedBorderColor = Color.Gray,
+                                            focusedTextColor = Color.Black,
+                                            unfocusedTextColor = Color.Black
+                                        ),
+                                        modifier = Modifier
+                                            .fillMaxWidth(0.5f)
+                                            .fillMaxHeight(0.5f)
+                                            .background(Color.Gray, RoundedCornerShape(8.dp)),
+                                        shape = RoundedCornerShape(8.dp),
+                                        singleLine = true
+                                    )
+                                }
+                            }
                         }
                         else if (vm.telaAtual == Tela.SITUACAO) {
-
+                            Text(
+                                text = vm.questaoAtual.situacao,
+                                color = Color.Black,
+                                fontSize = 20.sp,
+                                textAlign = TextAlign.Center
+                            )
                         }
                         else if (vm.telaAtual == Tela.CONDUTA) {
-
+                            Text(
+                                text = vm.textoCondutaAtual,
+                                color = Color.Black,
+                                fontSize = 20.sp,
+                                textAlign = TextAlign.Center
+                            )
                         }
                         else if (vm.telaAtual == Tela.EFEITO_CONDUTA) {
-
+                            if (vm.desempenhoJogadaAtual == DesempenhoJogada.ACERTOU) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.CheckCircle,
+                                        contentDescription = "Acerto",
+                                        tint = Color.Green,
+                                        modifier = Modifier
+                                            .size(36.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = "Você ganhou um backup!",
+                                        color = Color.Black,
+                                        fontSize = 20.sp
+                                    )
+                                }
+                            }
+                            else {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                ) {
+                                    // Atenção!
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .fillMaxWidth(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Cancel,
+                                            contentDescription = "Erro",
+                                            tint = Color.Red,
+                                            modifier = Modifier
+                                                .size(36.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(
+                                            text = "Atenção!",
+                                            color = Color.Black,
+                                            fontSize = 20.sp
+                                        )
+                                    }
+                                    var textoDesempenho = ""
+                                    if (vm.desempenhoJogadaAtual == DesempenhoJogada.ERROU_CONDUTA_E_BOA) {
+                                        textoDesempenho =
+                                            "A conduta descrita é, de fato, adequada e configura uma boa prática!"
+                                    } else if (vm.desempenhoJogadaAtual == DesempenhoJogada.ERROU_CONDUTA_E_MA) {
+                                        textoDesempenho = vm.questaoAtual.efeitoMaConduta
+                                    }
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(3f)
+                                            .fillMaxWidth(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = textoDesempenho,
+                                            color = Color.Black,
+                                            fontSize = 20.sp,
+                                            textAlign = TextAlign.Center
+                                        )
+                                    }
+                                }
+                            }
                         }
                         else if (vm.telaAtual == Tela.ENCERRAMENTO) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                            ) {
+                                // Atenção!
+                                Box(
+                                    modifier = Modifier
+                                        .weight(2f)
+                                        .fillMaxWidth(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = "${vm.jogadorAtual}\nganhou!",
+                                        color = Color.Black,
+                                        fontSize = 20.sp,
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
+                                Box(
+                                    modifier = Modifier
+                                        .weight(3f)
+                                        .fillMaxWidth(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Stars,
+                                        contentDescription = "Ganhou",
+                                        tint = Color.Yellow,
+                                        modifier = Modifier
+                                            .size(36.dp)
+                                    )
+                                }
+                            }
 
                         }
                         else if (vm.telaAtual == Tela.FEEDBACK) {
+                            val totalQuestoes = jogadorAtual.respostasErradas.size + jogadorAtual.pontuacao
+                            var titulosQuestoesErradas = ""
+                            for (titulo in jogadorAtual.respostasErradas)
+                                titulosQuestoesErradas += "$titulo "
+                            val scrollState = rememberScrollState()
 
+                            Text(
+                                text =  "respostas certas: ${jogadorAtual.pontuacao}/${totalQuestoes}\n" +
+                                        "estudar mais:\n" +
+                                        titulosQuestoesErradas,
+                                color = Color.Black,
+                                modifier = Modifier
+                                    .verticalScroll(scrollState)
+                                    .fillMaxWidth(),
+                                fontSize = 20.sp,
+                                textAlign = TextAlign.Center
+                            )
                         }
                     }
                     // Botões
@@ -519,8 +836,17 @@ fun TelaBase(vm: MainViewModel = MainViewModel()) {
 
                             if (vm.telaAtual == Tela.NOVO_JOGO) {
                                 textoBotao = "começar"
-                                // PENDENCIA: PRECISA RECEBER OS VALORES DOS NOMES DOS JOGADORES!!!
-                                acao = { editaMapa(vm) }
+                                acao = remember(nomeJogador1, nomeJogador2) {
+                                    if (nomeJogador1.isNotEmpty() && nomeJogador2.isNotEmpty()) {
+                                        {
+                                            vm.jogador1.nome = nomeJogador1
+                                            vm.jogador2.nome = nomeJogador2
+                                            editaMapa(vm)
+                                        }
+                                    } else {
+                                        {}
+                                    }
+                                }
                             }
                             else if (vm.telaAtual == Tela.SITUACAO) {
                                 textoBotao = "avaliar conduta"
@@ -551,7 +877,7 @@ fun TelaBase(vm: MainViewModel = MainViewModel()) {
                                     .fillMaxHeight(1/2f)    // 1/2 da altura do Box pai
                                     .clip(RoundedCornerShape(12.dp))
                                     .background(Color.Black)
-                                    .clickable { acao },
+                                    .clickable { acao() },
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
@@ -576,9 +902,7 @@ fun TelaBase(vm: MainViewModel = MainViewModel()) {
                         .weight(3f)
                         .fillMaxWidth(),
                     contentAlignment = Alignment.Center
-                ) {
-                    Text(text = txt)
-                }
+                ) { }
                 // Botão de avanço (Box)
                 Box(
                     modifier = Modifier
@@ -611,7 +935,7 @@ fun TelaBase(vm: MainViewModel = MainViewModel()) {
                             imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                             contentDescription = "Continuar",
                             tint = Color.Black,
-                            modifier = Modifier.clickable { acao }
+                            modifier = Modifier.clickable { acao() }
                         )
                     }
                     else if (vm.telaAtual == Tela.NOVO_MAPA && vm.jogadorAtual == 1 && vm.mapaJogador1.numVirusPosicionados == 5) {
