@@ -78,6 +78,7 @@ fun exibeEfeitoConduta(vm: MainViewModel, avaliacaoJogador: Conduta) {
     if (avaliacaoJogador == vm.tipoCondutaAtual) {
         vm.desempenhoJogadaAtual = DesempenhoJogada.ACERTOU
         incrementaPontuacao(jogador)
+        jogador.mapa.numBackupsRestantes++
     }
     // Jogador errou
     else {

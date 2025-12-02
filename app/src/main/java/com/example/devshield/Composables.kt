@@ -215,7 +215,7 @@ fun TelaBase(vm: MainViewModel) {
                 ) {
                     if (vm.telaAtual == Tela.NOVO_MAPA) {
                         // Virus individuais
-                        for (i in 0 until 5) {
+                        for (i in 0 until NUM_MAX_VIRUS_POSICIONAVEIS) {
                             if (mapaAtual.mapaColunaVirus[i] != -1) {
                                 Box(
                                     modifier = Modifier
@@ -258,17 +258,17 @@ fun TelaBase(vm: MainViewModel) {
                         .fillMaxWidth(),
                     contentAlignment = Alignment.Center
                 ) {
-                    if (vm.telaAtual in listOf(Tela.NOVO_MAPA, Tela.CONDUTA, Tela.FEEDBACK)) {
+                    if (vm.telaAtual in listOf(Tela.NOVO_MAPA, Tela.CONDUTA) || (vm.telaAtual == Tela.FEEDBACK && vm.jogadorAtual == 2)) {
                         var acao: () -> Unit = {}
                         if (vm.telaAtual == Tela.NOVO_MAPA) {
                             if (vm.jogadorAtual == 1) acao = { vm.telaAtual = Tela.NOVO_JOGO }
                             else acao = { vm.jogadorAtual = 1 }
                         }
                         else if (vm.telaAtual == Tela.CONDUTA) {
-                            vm.telaAtual = Tela.SITUACAO
+                            acao = { vm.telaAtual = Tela.SITUACAO }
                         }
                         else {
-                            vm.jogadorAtual = 1
+                            acao = { vm.jogadorAtual = 1 }
                         }
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -428,6 +428,7 @@ fun TelaBase(vm: MainViewModel) {
                                                     target = dragAndDropTarget
                                                 )
                                                 .aspectRatio(1f)
+                                                .background(Color.White)
                                                 .border(width = 2.dp, color = Color.Black)
                                         } else {
                                             // Endereço serve como origem de vírus
@@ -443,6 +444,7 @@ fun TelaBase(vm: MainViewModel) {
                                                     }
                                                 )
                                                 .aspectRatio(1f)
+                                                .background(Color.White)
                                                 .border(width = 2.dp, color = Color.Black)
                                         }
                                     }
@@ -458,85 +460,12 @@ fun TelaBase(vm: MainViewModel) {
                                                 .background(Color.Gray)
                                                 .aspectRatio(1f)
                                                 .border(width = 2.dp, color = Color.Black)
-                                        }
-                                    }
-/*
-                                    val modifierBase = Modifier
-
-                                    val enderecoAtual = mapaAtual.mapaEnderecos[i][j]
-
-                                    val dragAndDropTarget =
-                                        object : DragAndDropTarget {
-                                            override fun onDrop(event: DragAndDropEvent): Boolean {
-                                                val textoOrigem =
-                                                    event.toAndroidDragEvent().clipData
-                                                    ?.getItemAt(0)?.text?.toString()?.split(",")
-
-                                                var linhaOrigem = -1
-                                                var colunaOrigem = -1
-
-                                                if (textoOrigem != null) {
-                                                    linhaOrigem = textoOrigem[0].toInt()
-                                                    colunaOrigem = textoOrigem[1].toInt()
+                                                .clickable(enabled = vm.resultadoInspecaoAtual == ResultadoInspecao.PENDENTE || vm.resultadoInspecaoAtual == ResultadoInspecao.REPETE_JOGADA) {
+                                                    mapaAtual.revelaEndereco(i,j)
                                                 }
-
-                                                // Vírus vem da área de vírus
-                                                if (colunaOrigem == -1) {
-                                                    mapaAtual.utilizaVirus(linhaOrigem)
-                                                    enderecoAtual.posicionaVirus(
-                                                        linhaOrigem
-                                                    )
-                                                }
-                                                // Vírus vem de outra célula do mapa
-                                                else {
-                                                    val enderecoAntigo =
-                                                        mapaAtual.mapaEnderecos[linhaOrigem][colunaOrigem]
-                                                    enderecoAtual.posicionaVirus(
-                                                        enderecoAntigo.idVirus
-                                                    )
-                                                    enderecoAntigo.perdeVirus()
-                                                }
-                                                return true
-                                            }
-                                        }
-
-                                    // Configura endereço para receber vírus
-                                    if (vm.telaAtual == Tela.NOVO_MAPA) {
-                                        if (enderecoAtual.contemVirus() == false) {
-                                            modifierBase
-                                                // Endereço serve como destino de vírus
-                                                .dragAndDropTarget(
-                                                    shouldStartDragAndDrop = { event ->
-                                                        event
-                                                            .mimeTypes()
-                                                            .contains(ClipDescription.MIMETYPE_TEXT_PLAIN)
-                                                    },
-                                                    target = dragAndDropTarget
-                                                )
-                                        }
-                                        else {
-                                            // Endereço serve como origem de vírus
-                                            modifierBase
-                                                .dragAndDropSource(
-                                                    transferData = {
-                                                        DragAndDropTransferData(
-                                                            ClipData.newPlainText(
-                                                                "origemVirus",
-                                                                "$i,$j"
-                                                            )
-                                                        )
-                                                    }
-                                                )
                                         }
                                     }
 
-                                    // Define cor do box
-                                    if (enderecoAtual.estaVisivel) {
-                                        modifierBase.background(Color.White)
-                                    } else {
-                                        modifierBase.background(Color.Gray)
-                                    }
-*/
                                     Box(
                                         modifierBase,
                                          //   .weight(1f)
@@ -544,7 +473,7 @@ fun TelaBase(vm: MainViewModel) {
                                         //    .border(width = 2.dp, color = Color.Black),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        if (enderecoAtual.contemVirus()) {
+                                        if (enderecoAtual.contemVirus() && enderecoAtual.estaVisivel) {
                                             Icon(
                                                 imageVector = icones[enderecoAtual.idVirus],
                                                 contentDescription = "vírus",
@@ -777,8 +706,8 @@ fun TelaBase(vm: MainViewModel) {
                         else if (vm.telaAtual == Tela.FEEDBACK) {
                             val totalQuestoes = jogadorAtual.respostasErradas.size + jogadorAtual.pontuacao
                             var titulosQuestoesErradas = ""
-                            for (titulo in jogadorAtual.respostasErradas)
-                                titulosQuestoesErradas += "$titulo "
+                            for (questao in jogadorAtual.respostasErradas)
+                                titulosQuestoesErradas += "${questao.titulo} "
                             val scrollState = rememberScrollState()
 
                             Text(
@@ -938,7 +867,7 @@ fun TelaBase(vm: MainViewModel) {
                             modifier = Modifier.clickable { acao() }
                         )
                     }
-                    else if (vm.telaAtual == Tela.NOVO_MAPA && vm.jogadorAtual == 1 && vm.mapaJogador1.numVirusPosicionados == 5) {
+                    else if (vm.telaAtual == Tela.NOVO_MAPA && vm.jogadorAtual == 1 && vm.mapaJogador1.numVirusPosicionados == NUM_MAX_VIRUS_POSICIONAVEIS) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                             contentDescription = "Continuar",
@@ -946,7 +875,7 @@ fun TelaBase(vm: MainViewModel) {
                             modifier = Modifier.clickable { vm.jogadorAtual = 2 }
                         )
                     }
-                    else if (vm.telaAtual == Tela.NOVO_MAPA && vm.jogadorAtual == 2 && vm.mapaJogador2.numVirusPosicionados == 5) {
+                    else if (vm.telaAtual == Tela.NOVO_MAPA && vm.jogadorAtual == 2 && vm.mapaJogador2.numVirusPosicionados == NUM_MAX_VIRUS_POSICIONAVEIS) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                             contentDescription = "Continuar",

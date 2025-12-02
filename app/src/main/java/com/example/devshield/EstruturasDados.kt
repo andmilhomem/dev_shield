@@ -132,7 +132,7 @@ class Mapa(val jogador: Jogador, val adversario: Jogador, var vm : MainViewModel
     fun checaStatusMapa(): Int {
         return when {
             numBackupsRestantes < 0 -> -1 // jogador perdeu
-            numVirusRevelados == 5 -> 1   // jogador venceu
+            numVirusRevelados == NUM_MAX_VIRUS_POSICIONAVEIS -> 1   // jogador venceu
             else -> 0                    // jogo continua
         }
     }
