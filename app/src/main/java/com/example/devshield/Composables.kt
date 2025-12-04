@@ -30,7 +30,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import android.app.Activity
@@ -64,8 +63,10 @@ import androidx.compose.foundation.draganddrop.dragAndDropTarget
 import androidx.compose.ui.draganddrop.mimeTypes
 import androidx.compose.ui.draganddrop.toAndroidDragEvent
 import android.content.ClipDescription
+import android.media.SoundPool
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -79,6 +80,7 @@ import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Stars
 import androidx.compose.material.icons.filled.Security
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 
@@ -110,41 +112,65 @@ fun TelaBase(vm: MainViewModel) {
         Icons.Default.Gesture,
         Icons.Default.Storm)
 
-    // Tela base
+    // Sons
+    val context = LocalContext.current
+
+    val soundPool = remember { SoundPool.Builder().setMaxStreams(1).build() }
+
+    val respostaCerta = remember { soundPool.load(context, R.raw.respostacerta, 1) }
+    val respostaErrada = remember { soundPool.load(context, R.raw.respostaerrada, 2) }
+    val virus = remember { soundPool.load(context, R.raw.virus, 3) }
+    val semVirus = remember { soundPool.load(context, R.raw.semvirus, 4) }
+    val vitoria = remember { soundPool.load(context, R.raw.vitoria, 5) }
+    val derrota = remember { soundPool.load(context, R.raw.derrota, 6) }
+    val clickNeutro = remember { soundPool.load(context, R.raw.clickneutro, 7) }
+
+    DisposableEffect(Unit) { onDispose { soundPool.release() } }
+
+ //   soundPool.play(clickNeutro, 1f, 1f, 1, 0, 1f)
+//    Button(onClick = { soundPool.play(soundId, 1f, 1f, 1, 0, 1f) }) {
+//        Text("Tocar som")
+//    }
+
+
+
+// Tela base
     Column(modifier = Modifier
         .fillMaxSize()
         .padding(WindowInsets.safeDrawing.asPaddingValues()) // respeita status bar e barra de navegação
     ) {
         // Menu superior (Row)
         Row(modifier = Modifier
-            .weight(1f)
+            .weight(2f)
             .fillMaxWidth()
         ) {
             // Nome da aplicação (Box)
             Box(modifier = Modifier
-                .weight(3f)
+                .weight(6f)
                 .fillMaxHeight(),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.CenterStart
             ) {
                 if (vm.telaAtual != Tela.NOVO_JOGO) {
                     Text(
                         text = "dev_shield",
                         color = Color.Black,
-                        fontSize = 20.sp
+                        fontSize = 15.sp,
+                        modifier = Modifier.padding(start = 16.dp)
                     )
                 }
             }
             // Backups (Box)
             Box(modifier = Modifier
-                .weight(2f)
+                .weight(6f)
                 .fillMaxHeight(),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.CenterEnd
             ) {
                 if (vm.telaAtual in listOf(Tela.SITUACAO, Tela.CONDUTA, Tela.EFEITO_CONDUTA, Tela.INSPECAO)) {
                     Text(
-                        text = "${mapaAtual.numBackupsRestantes} bkps",
+                        text = "${mapaAtual.numBackupsRestantes.coerceAtLeast(0)} bkps",
                         color = Color.Black,
-                        fontSize = 20.sp
+                        fontSize = 15.sp,
+                        modifier = Modifier.padding(end = 16.dp)
                     )
                 }
             }
@@ -158,16 +184,19 @@ fun TelaBase(vm: MainViewModel) {
                     imageVector = Icons.Default.Close,
                     contentDescription = "Sair",
                     tint = Color.Black,
-                    modifier = Modifier.clickable { activity?.finish() }
+                    modifier = Modifier
+                        .clickable { activity?.finish() }
+                        .size(40.dp)
                 )
             }
         }
 
         // Texto superior (com ou sem ícone) (Box)
-        Box(modifier = Modifier
-            .weight(1f)
+        Row(modifier = Modifier
+            .weight(4f)
             .fillMaxWidth(),
-            contentAlignment = Alignment.Center
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
         ) {
             if (vm.telaAtual == Tela.NOVO_JOGO) {
                 Icon(
@@ -181,8 +210,6 @@ fun TelaBase(vm: MainViewModel) {
                 Text(
                     text =  "dev_shield",
                     color = Color.Black,
-                    modifier = Modifier
-                        .fillMaxWidth(),
                     fontSize = 20.sp,
                     textAlign = TextAlign.Center
                 )
@@ -200,7 +227,7 @@ fun TelaBase(vm: MainViewModel) {
         }
         // Conteúdo principal (Row)
         Row(modifier = Modifier
-            .weight(4f)
+            .weight(18f)
             .fillMaxWidth()
         ) {
             // Lateral esquerda (Column)
@@ -274,7 +301,9 @@ fun TelaBase(vm: MainViewModel) {
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Voltar",
                             tint = Color.Black,
-                            modifier = Modifier.clickable { acao() }
+                            modifier = Modifier
+                                .clickable { acao() }
+                                .size(40.dp)
                         )
                     }
                 }
@@ -288,38 +317,39 @@ fun TelaBase(vm: MainViewModel) {
                 // Texto curto acima e Mapa abaixo
                 if (vm.telaAtual in listOf(Tela.NOVO_MAPA, Tela.INSPECAO)) {
                     // Texto curto
-                    Box(modifier = Modifier
+                    Row(modifier = Modifier
                         .weight(1f)
                         .fillMaxWidth(),
-                        contentAlignment = Alignment.Center
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
                     ) {
                         var texto = ""
                         var icone = 0
                         if (vm.telaAtual == Tela.NOVO_MAPA) {
-                            texto = "posicione 5 vírus na SSD do seu oponente:"
+                            texto = "posicione $NUM_MAX_VIRUS_POSICIONAVEIS vírus na SSD do seu oponente:"
                         }
                         else {
                             if (vm.resultadoInspecaoAtual == ResultadoInspecao.PENDENTE) {
                                 texto = "inspecione um endereço da sua SSD:"
                             }
                             else if (vm.resultadoInspecaoAtual == ResultadoInspecao.VIRUS) {
-                                texto = "endereço corrompido: você perdeu 1 backup!"
+                                texto = "endereço corrompido | próximo dev"
                                 icone = 1
                             }
                             else if (vm.resultadoInspecaoAtual == ResultadoInspecao.NAO_VIRUS) {
-                                texto = "endereço íntegro: boa escolha!:"
+                                texto = "endereço íntegro | próximo dev"
                                 icone = 2
                             }
                             else if (vm.resultadoInspecaoAtual == ResultadoInspecao.REPETE_JOGADA) {
-                                texto = "bloco íntegro: escolha mais um endereço!"
+                                texto = "bloco íntegro | jogue de novo"
                                 icone = 2
                             }
                             else if (vm.resultadoInspecaoAtual == ResultadoInspecao.ACABOU_MEMORIA) {
-                                texto = "endereço corrompido e backup inexistente!"
+                                texto = "endereço corrompido sem backup | fim de jogo"
                                 icone = 1
                             }
                             else if (vm.resultadoInspecaoAtual == ResultadoInspecao.REVELOU_TUDO) {
-                                texto = "inspeção concluída: todos os vírus detectados!"
+                                texto = "todos os vírus detectados | fim de jogo"
                                 icone = 2
                             }
                         }
@@ -327,7 +357,7 @@ fun TelaBase(vm: MainViewModel) {
                             Text(
                                 text = texto,
                                 color = Color.Black,
-                                fontSize = 20.sp
+                                fontSize = 15.sp
                             )
                         }
                         else if (icone == 1) {
@@ -342,7 +372,7 @@ fun TelaBase(vm: MainViewModel) {
                             Text(
                                 text = texto,
                                 color = Color.Black,
-                                fontSize = 20.sp
+                                fontSize = 15.sp
                             )
                         }
                         else {
@@ -357,7 +387,7 @@ fun TelaBase(vm: MainViewModel) {
                             Text(
                                 text = texto,
                                 color = Color.Black,
-                                fontSize = 20.sp
+                                fontSize = 15.sp
                             )
                         }
                     }
@@ -427,6 +457,7 @@ fun TelaBase(vm: MainViewModel) {
                                                     },
                                                     target = dragAndDropTarget
                                                 )
+                                                .weight(1f)
                                                 .aspectRatio(1f)
                                                 .background(Color.White)
                                                 .border(width = 2.dp, color = Color.Black)
@@ -443,6 +474,7 @@ fun TelaBase(vm: MainViewModel) {
                                                         )
                                                     }
                                                 )
+                                                .weight(1f)
                                                 .aspectRatio(1f)
                                                 .background(Color.White)
                                                 .border(width = 2.dp, color = Color.Black)
@@ -452,11 +484,13 @@ fun TelaBase(vm: MainViewModel) {
                                     else {
                                         if (enderecoAtual.estaVisivel) {
                                             modifierBase = Modifier
+                                                .weight(1f)
                                                 .background(Color.White)
                                                 .aspectRatio(1f)
                                                 .border(width = 2.dp, color = Color.Black)
                                         } else {
                                             modifierBase = Modifier
+                                                .weight(1f)
                                                 .background(Color.Gray)
                                                 .aspectRatio(1f)
                                                 .border(width = 2.dp, color = Color.Black)
@@ -468,9 +502,6 @@ fun TelaBase(vm: MainViewModel) {
 
                                     Box(
                                         modifierBase,
-                                         //   .weight(1f)
-                                        //    .aspectRatio(1f)
-                                        //    .border(width = 2.dp, color = Color.Black),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         if (enderecoAtual.contemVirus() && enderecoAtual.estaVisivel) {
@@ -519,18 +550,20 @@ fun TelaBase(vm: MainViewModel) {
                                                 nomeJogador1 = novoTexto
                                             }
                                         },
-                                        label = { Text("Dev 1") },
-                                        placeholder = { Text("Dev 1") },
+                                        label = { Text(text = "Dev 1",
+                                                       textAlign = TextAlign.Center)},
                                         colors = OutlinedTextFieldDefaults.colors(
-                                            focusedBorderColor = Color.DarkGray,
-                                            unfocusedBorderColor = Color.Gray,
+                                            focusedBorderColor = Color.LightGray,
+                                            unfocusedBorderColor = Color.LightGray,
                                             focusedTextColor = Color.Black,
-                                            unfocusedTextColor = Color.Black
+                                            unfocusedTextColor = Color.Black,
+                                            focusedContainerColor = Color.LightGray,
+                                            unfocusedContainerColor = Color.LightGray
                                         ),
                                         modifier = Modifier
-                                            .fillMaxWidth(0.5f)
-                                            .fillMaxHeight(0.5f)
-                                            .background(Color.Gray, RoundedCornerShape(8.dp)),
+                                            .fillMaxWidth(0.9f)
+                                            .fillMaxHeight(0.3f)
+                                            .background(Color.LightGray, RoundedCornerShape(8.dp)),
                                         shape = RoundedCornerShape(8.dp),
                                         singleLine = true
                                     )
@@ -562,18 +595,21 @@ fun TelaBase(vm: MainViewModel) {
                                                 nomeJogador2 = novoTexto
                                             }
                                         },
-                                        label = { Text("Dev 2") },
+                                        label = { Text( text = "Dev 2",
+                                                        textAlign = TextAlign.Center) },
                                         placeholder = { Text("Dev 2") },
                                         colors = OutlinedTextFieldDefaults.colors(
-                                            focusedBorderColor = Color.DarkGray,
-                                            unfocusedBorderColor = Color.Gray,
+                                            focusedBorderColor = Color.LightGray,
+                                            unfocusedBorderColor = Color.LightGray,
                                             focusedTextColor = Color.Black,
-                                            unfocusedTextColor = Color.Black
+                                            unfocusedTextColor = Color.Black,
+                                            focusedContainerColor = Color.LightGray,
+                                            unfocusedContainerColor = Color.LightGray
                                         ),
                                         modifier = Modifier
-                                            .fillMaxWidth(0.5f)
-                                            .fillMaxHeight(0.5f)
-                                            .background(Color.Gray, RoundedCornerShape(8.dp)),
+                                            .fillMaxWidth(0.9f)
+                                            .fillMaxHeight(0.3f)
+                                            .background(Color.LightGray, RoundedCornerShape(8.dp)),
                                         shape = RoundedCornerShape(8.dp),
                                         singleLine = true
                                     )
@@ -581,27 +617,31 @@ fun TelaBase(vm: MainViewModel) {
                             }
                         }
                         else if (vm.telaAtual == Tela.SITUACAO) {
+                            val scrollState = rememberScrollState()
                             Text(
                                 text = vm.questaoAtual.situacao,
                                 color = Color.Black,
                                 fontSize = 20.sp,
-                                textAlign = TextAlign.Center
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.verticalScroll(scrollState)
                             )
                         }
                         else if (vm.telaAtual == Tela.CONDUTA) {
+                            val scrollState = rememberScrollState()
                             Text(
                                 text = vm.textoCondutaAtual,
                                 color = Color.Black,
                                 fontSize = 20.sp,
-                                textAlign = TextAlign.Center
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.verticalScroll(scrollState)
                             )
                         }
                         else if (vm.telaAtual == Tela.EFEITO_CONDUTA) {
                             if (vm.desempenhoJogadaAtual == DesempenhoJogada.ACERTOU) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize(),
-                                    contentAlignment = Alignment.Center
+                                Row(modifier = Modifier
+                                    .fillMaxSize(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.CheckCircle,
@@ -611,10 +651,12 @@ fun TelaBase(vm: MainViewModel) {
                                             .size(36.dp)
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
+                                    val scrollState = rememberScrollState()
                                     Text(
                                         text = "Você ganhou um backup!",
                                         color = Color.Black,
-                                        fontSize = 20.sp
+                                        fontSize = 20.sp,
+                                        modifier = Modifier.verticalScroll(scrollState)
                                     )
                                 }
                             }
@@ -624,11 +666,11 @@ fun TelaBase(vm: MainViewModel) {
                                         .fillMaxSize()
                                 ) {
                                     // Atenção!
-                                    Box(
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .fillMaxWidth(),
-                                        contentAlignment = Alignment.Center
+                                    Row(modifier = Modifier
+                                        .weight(1f)
+                                        .fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.Center
                                     ) {
                                         Icon(
                                             imageVector = Icons.Default.Cancel,
@@ -672,7 +714,7 @@ fun TelaBase(vm: MainViewModel) {
                                 modifier = Modifier
                                     .fillMaxSize()
                             ) {
-                                // Atenção!
+                                // Ganhou!
                                 Box(
                                     modifier = Modifier
                                         .weight(2f)
@@ -682,7 +724,7 @@ fun TelaBase(vm: MainViewModel) {
                                     Text(
                                         text = "${jogadorAtual.nome}\nganhou!",
                                         color = Color.Black,
-                                        fontSize = 20.sp,
+                                        fontSize = 30.sp,
                                         textAlign = TextAlign.Center
                                     )
                                 }
@@ -695,9 +737,9 @@ fun TelaBase(vm: MainViewModel) {
                                     Icon(
                                         imageVector = Icons.Default.Stars,
                                         contentDescription = "Ganhou",
-                                        tint = Color.Yellow,
+                                        tint = Color.Black,
                                         modifier = Modifier
-                                            .size(36.dp)
+                                            .size(90.dp)
                                     )
                                 }
                             }
@@ -705,15 +747,20 @@ fun TelaBase(vm: MainViewModel) {
                         }
                         else if (vm.telaAtual == Tela.FEEDBACK) {
                             val totalQuestoes = jogadorAtual.respostasErradas.size + jogadorAtual.pontuacao
-                            var titulosQuestoesErradas = ""
+                            var cadeiaTitulosQuestoesErradas = ""
+                            var listaTitulosErrados: MutableList<String> = mutableListOf()
                             for (questao in jogadorAtual.respostasErradas)
-                                titulosQuestoesErradas += "${questao.titulo} "
+                                if (questao.titulo in listaTitulosErrados == false) {
+                                    listaTitulosErrados.add(questao.titulo)
+                                }
+                            for (titulo in listaTitulosErrados) {
+                                cadeiaTitulosQuestoesErradas += "${titulo}\n"
+                            }
                             val scrollState = rememberScrollState()
 
                             Text(
-                                text =  "respostas certas: ${jogadorAtual.pontuacao}/${totalQuestoes}\n" +
-                                        "estudar mais:\n" +
-                                        titulosQuestoesErradas,
+                                text =  "respostas certas:\n${jogadorAtual.pontuacao}/${totalQuestoes}\n" +
+                                        (if (cadeiaTitulosQuestoesErradas.isNotEmpty()) "\nestudar mais:\n$cadeiaTitulosQuestoesErradas" else ""),
                                 color = Color.Black,
                                 modifier = Modifier
                                     .verticalScroll(scrollState)
@@ -735,8 +782,8 @@ fun TelaBase(vm: MainViewModel) {
                             Row(
                                 modifier = Modifier
                                     .align(Alignment.Center) // centraliza na Box
-                                    .padding(16.dp),         // padding interno
-                                horizontalArrangement = Arrangement.spacedBy(24.dp), // distância entre ícones
+                                    .padding(3.dp),         // padding interno
+                                horizontalArrangement = Arrangement.spacedBy(35.dp), // distância entre ícones
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Icon(
@@ -744,7 +791,7 @@ fun TelaBase(vm: MainViewModel) {
                                     contentDescription = "Aprovar",
                                     tint = Color.Black,
                                     modifier = Modifier
-                                        .size(36.dp)
+                                        .size(60.dp)
                                         .clickable { exibeEfeitoConduta(vm, Conduta.BOA) }
                                 )
                                 Icon(
@@ -752,7 +799,7 @@ fun TelaBase(vm: MainViewModel) {
                                     contentDescription = "Rejeitar",
                                     tint = Color.Black,
                                     modifier = Modifier
-                                        .size(36.dp)
+                                        .size(60.dp)
                                         .clickable { exibeEfeitoConduta(vm, Conduta.MA)  }
                                 )
                             }
@@ -771,6 +818,7 @@ fun TelaBase(vm: MainViewModel) {
                                             vm.jogador1.nome = nomeJogador1
                                             vm.jogador2.nome = nomeJogador2
                                             editaMapa(vm)
+                                            soundPool.play(clickNeutro, 1f, 1f, 1, 0, 1f)
                                         }
                                     } else {
                                         {}
@@ -802,9 +850,9 @@ fun TelaBase(vm: MainViewModel) {
                             // Cria botão
                             Box(
                                 modifier = Modifier
-                                    .fillMaxWidth(1/3f)     // 1/3 da largura do Box pai
-                                    .fillMaxHeight(1/2f)    // 1/2 da altura do Box pai
-                                    .clip(RoundedCornerShape(12.dp))
+                                    .wrapContentWidth()
+                                    .fillMaxHeight(0.9f)
+                                    .clip(RoundedCornerShape(8.dp))
                                     .background(Color.Black)
                                     .clickable { acao() },
                                 contentAlignment = Alignment.Center
@@ -812,7 +860,8 @@ fun TelaBase(vm: MainViewModel) {
                                 Text(
                                     text = textoBotao,
                                     color = Color.White,
-                                    fontSize = 20.sp
+                                    fontSize = 20.sp,
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical= 6.dp)
                                 )
                             }
                         }
@@ -864,7 +913,9 @@ fun TelaBase(vm: MainViewModel) {
                             imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                             contentDescription = "Continuar",
                             tint = Color.Black,
-                            modifier = Modifier.clickable { acao() }
+                            modifier = Modifier
+                                .clickable { acao() }
+                                .size(40.dp)
                         )
                     }
                     else if (vm.telaAtual == Tela.NOVO_MAPA && vm.jogadorAtual == 1 && vm.mapaJogador1.numVirusPosicionados == NUM_MAX_VIRUS_POSICIONAVEIS) {
@@ -872,7 +923,9 @@ fun TelaBase(vm: MainViewModel) {
                             imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                             contentDescription = "Continuar",
                             tint = Color.Black,
-                            modifier = Modifier.clickable { vm.jogadorAtual = 2 }
+                            modifier = Modifier
+                                .clickable { vm.jogadorAtual = 2 }
+                                .size(40.dp)
                         )
                     }
                     else if (vm.telaAtual == Tela.NOVO_MAPA && vm.jogadorAtual == 2 && vm.mapaJogador2.numVirusPosicionados == NUM_MAX_VIRUS_POSICIONAVEIS) {
@@ -880,14 +933,22 @@ fun TelaBase(vm: MainViewModel) {
                             imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                             contentDescription = "Continuar",
                             tint = Color.Black,
-                            modifier = Modifier.clickable {
-                                vm.jogadorAtual = 1
-                                iniciaNovaRodada(vm)
-                            }
+                            modifier = Modifier
+                                .clickable {
+                                    trocaMapas(vm)
+                                    vm.jogadorAtual = 1
+                                    iniciaNovaRodada(vm)
+                                }
+                                .size(40.dp)
                         )
                     }
                 }
             }
         }
+        // Rodapé (livre)
+        Row(modifier = Modifier
+            .weight(1f)
+            .fillMaxWidth()
+        ) {}
     }
 }

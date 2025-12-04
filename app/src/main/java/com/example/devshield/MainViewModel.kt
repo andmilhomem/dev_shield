@@ -39,10 +39,10 @@ class MainViewModel : ViewModel() {
         val gson = Gson()
         val type = object : TypeToken<List<Questao>>() {}.type
         listaQuestoesJSON = gson.fromJson(reader, type)
-        listaQuestoesAtual = listaQuestoesJSON.toMutableList()
-        for (i in 0 until listaQuestoesAtual.size) {
-            listaQuestoesAtual[i].condutasDisponiveis = mutableListOf(Conduta.BOA, Conduta.MA)
-        }
+    //    listaQuestoesAtual = listaQuestoesJSON.toMutableList()
+    //    for (i in 0 until listaQuestoesAtual.size) {
+    //        listaQuestoesAtual[i].condutasDisponiveis = mutableListOf(Conduta.BOA, Conduta.MA)
+    //    }
     }
 }
 

@@ -8,7 +8,6 @@ fun reiniciaJogo(vm: MainViewModel) {
     // Retorna variáveis de ViewModel aos valores iniciais
     vm.jogadorAtual = 1
     vm.jogo_comecou = false
-    vm.listaQuestoesAtual = vm.listaQuestoesJSON.toMutableList()
     vm.jogador1 = Jogador(1,"")
     vm.jogador2 = Jogador(2, "")
     vm.mapaJogador1 = Mapa(vm.jogador1, vm.jogador2, vm)
@@ -31,16 +30,13 @@ fun iniciaNovaRodada(vm: MainViewModel) { // Supõe que jogadorAtual está atual
                 vm.mapaJogador2.mapaEnderecos[i][j].escondeEndereco()
             }
         }
+        compoeListaQuestoes(vm)
+
         vm.jogo_comecou = true
     }
 
     // Checa se ainda há questões
-    if (vm.listaQuestoesAtual.isEmpty()) {
-        vm.listaQuestoesAtual = vm.listaQuestoesJSON.toMutableList()
-        for (i in 0 until vm.listaQuestoesAtual.size) {
-            vm.listaQuestoesAtual[i].condutasDisponiveis = mutableListOf(Conduta.BOA, Conduta.MA)
-        }
-    }
+    if (vm.listaQuestoesAtual.isEmpty()) compoeListaQuestoes(vm)
 
     // Escolhe questão
     val questao = vm.listaQuestoesAtual.random()
@@ -122,4 +118,19 @@ fun exibeFeedback(vm: MainViewModel, jogador: Int) {
 }
 fun incrementaPontuacao(jogador: Jogador) {
     jogador.pontuacao++
+}
+
+fun trocaMapas(vm: MainViewModel) {
+    val mapaAuxiliar: Mapa = vm.mapaJogador1
+    vm.mapaJogador1 = vm.mapaJogador2
+    vm.jogador1.associaMapa(vm.mapaJogador1)
+    vm.mapaJogador2 = mapaAuxiliar
+    vm.jogador2.associaMapa(vm.mapaJogador2)
+}
+
+fun compoeListaQuestoes(vm: MainViewModel) {
+    vm.listaQuestoesAtual = vm.listaQuestoesJSON.toMutableList()
+    for (i in 0 until vm.listaQuestoesAtual.size) {
+        vm.listaQuestoesAtual[i].condutasDisponiveis = mutableListOf(Conduta.BOA, Conduta.MA)
+    }
 }
