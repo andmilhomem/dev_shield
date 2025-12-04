@@ -35,7 +35,12 @@ fun iniciaNovaRodada(vm: MainViewModel) { // Supõe que jogadorAtual está atual
     }
 
     // Checa se ainda há questões
-    if (vm.listaQuestoesAtual.isEmpty()) vm.listaQuestoesAtual = vm.listaQuestoesJSON.toMutableList()
+    if (vm.listaQuestoesAtual.isEmpty()) {
+        vm.listaQuestoesAtual = vm.listaQuestoesJSON.toMutableList()
+        for (i in 0 until vm.listaQuestoesAtual.size) {
+            vm.listaQuestoesAtual[i].condutasDisponiveis = mutableListOf(Conduta.BOA, Conduta.MA)
+        }
+    }
 
     // Escolhe questão
     val questao = vm.listaQuestoesAtual.random()

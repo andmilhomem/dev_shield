@@ -34,7 +34,6 @@ class Mapa(val jogador: Jogador, val adversario: Jogador, var vm : MainViewModel
 
     var numVirusPosicionados by mutableStateOf(0)
     var numVirusRevelados by mutableStateOf(0)
-    var numEnderecosEscondidos by mutableStateOf(NUM_MAX_LINHAS * NUM_MAX_COLUNAS)
     var numBackupsRestantes by mutableStateOf(NUM_BACKUPS_INICIAL)
 
     fun utilizaVirus(idVirus: Int) {
@@ -50,7 +49,6 @@ class Mapa(val jogador: Jogador, val adversario: Jogador, var vm : MainViewModel
 
         // Revela o endereço
         endereco.revelaEndereco()
-        numEnderecosEscondidos--
 
         // Checa se endereco revelado contém vírus
         if (endereco.contemVirus()) {
@@ -68,7 +66,7 @@ class Mapa(val jogador: Jogador, val adversario: Jogador, var vm : MainViewModel
         // Jogador venceu
         else if (statusMapa == 1) vm.resultadoInspecaoAtual = ResultadoInspecao.REVELOU_TUDO
         // Repete jogada
-        else if (adjacentesNaoContemVirus) vm.resultadoInspecaoAtual = ResultadoInspecao.REPETE_JOGADA
+        else if (endereco.contemVirus() == false && adjacentesNaoContemVirus) vm.resultadoInspecaoAtual = ResultadoInspecao.REPETE_JOGADA
         // Era vírus
         else if (endereco.contemVirus()) vm.resultadoInspecaoAtual = ResultadoInspecao.VIRUS
         // Não era vírus
@@ -76,10 +74,12 @@ class Mapa(val jogador: Jogador, val adversario: Jogador, var vm : MainViewModel
     }
 
     fun visitaEnderecoAdjacente(enderecoVisitado: Endereco): Boolean {
+        if (enderecoVisitado.estaVisivel) {
+            return false
+        }
         var contemVirus = false
 
         enderecoVisitado.revelaEndereco()
-        numEnderecosEscondidos--
 
         if (enderecoVisitado.contemVirus()) {
             numVirusRevelados++
@@ -91,43 +91,59 @@ class Mapa(val jogador: Jogador, val adversario: Jogador, var vm : MainViewModel
     fun revelaEnderecosAdjacentes(enderecoReferencia: Endereco): Boolean {
         val coluna = enderecoReferencia.coluna
         val linha = enderecoReferencia.linha
-        var adjacentesContemVirus = false
-        val colunaEsquerda = enderecoReferencia.coluna - 1
-        val colunaDireita = enderecoReferencia.coluna + 1
-        val linhaAcima = enderecoReferencia.linha - 1
-        val linhaAbaixo = enderecoReferencia.linha + 1
+        var adjacentesNaoContemVirus = true
+        val colunaEsquerda = coluna - 1
+        val colunaDireita = coluna + 1
+        val linhaAcima = linha - 1
+        val linhaAbaixo = linha + 1
 
+        // Visita mesma linha
+        if (colunaEsquerda >= 0) { // Existe coluna à esquerda
+            if (visitaEnderecoAdjacente(mapaEnderecos[linha][colunaEsquerda])) {
+                adjacentesNaoContemVirus = false
+            }
+        }
+        if (colunaDireita < NUM_MAX_COLUNAS) { // Existe coluna à direita
+            if (visitaEnderecoAdjacente(mapaEnderecos[linha][colunaDireita])) {
+                adjacentesNaoContemVirus = false
+            }
+        }
+
+        // Visita linha acima
         if (linhaAcima >= 0) { // Existe linha acima
             if (visitaEnderecoAdjacente(mapaEnderecos[linhaAcima][coluna])) {
-                adjacentesContemVirus = true
+                adjacentesNaoContemVirus = false
             }
             if (colunaEsquerda >= 0) { // Existe coluna à esquerda
                 if (visitaEnderecoAdjacente(mapaEnderecos[linhaAcima][colunaEsquerda])) {
-                    adjacentesContemVirus = true
+                    adjacentesNaoContemVirus = false
                 }
-                if (colunaDireita < NUM_MAX_COLUNAS) { // Existe coluna à direita
-                    if (visitaEnderecoAdjacente(mapaEnderecos[linhaAcima][colunaDireita])) {
-                        adjacentesContemVirus = true
-                    }
+            }
+            if (colunaDireita < NUM_MAX_COLUNAS) { // Existe coluna à direita
+                if (visitaEnderecoAdjacente(mapaEnderecos[linhaAcima][colunaDireita])) {
+                    adjacentesNaoContemVirus = false
                 }
             }
         }
+
+        // Visita linha abaixo
         if (linhaAbaixo < NUM_MAX_LINHAS) { // Existe linha abaixo
             if (visitaEnderecoAdjacente(mapaEnderecos[linhaAbaixo][coluna])) {
-                adjacentesContemVirus = true
+                adjacentesNaoContemVirus = false
             }
             if (colunaEsquerda >= 0) { // Existe coluna à esquerda
                 if (visitaEnderecoAdjacente(mapaEnderecos[linhaAbaixo][colunaEsquerda])) {
-                    adjacentesContemVirus = true
+                    adjacentesNaoContemVirus = false
                 }
-                if (colunaDireita < NUM_MAX_COLUNAS) { // Existe coluna à direita
-                    if (visitaEnderecoAdjacente(mapaEnderecos[linhaAbaixo][colunaDireita])) {
-                        adjacentesContemVirus = true
-                    }
+            }
+            if (colunaDireita < NUM_MAX_COLUNAS) { // Existe coluna à direita
+                if (visitaEnderecoAdjacente(mapaEnderecos[linhaAbaixo][colunaDireita])) {
+                    adjacentesNaoContemVirus = false
                 }
             }
         }
-        return adjacentesContemVirus
+
+        return adjacentesNaoContemVirus
     }
     fun checaStatusMapa(): Int {
         return when {

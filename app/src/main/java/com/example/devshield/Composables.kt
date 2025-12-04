@@ -680,7 +680,7 @@ fun TelaBase(vm: MainViewModel) {
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
-                                        text = "${vm.jogadorAtual}\nganhou!",
+                                        text = "${jogadorAtual.nome}\nganhou!",
                                         color = Color.Black,
                                         fontSize = 20.sp,
                                         textAlign = TextAlign.Center
