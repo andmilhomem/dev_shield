@@ -1,5 +1,6 @@
 package com.example.devshield
 
+import android.media.SoundPool
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -40,7 +41,7 @@ class Mapa(val jogador: Jogador, val adversario: Jogador, var vm : MainViewModel
         this.numVirusPosicionados++
         this.mapaColunaVirus[idVirus] = -1
     }
-    fun revelaEndereco(linha: Int, coluna: Int) {
+    fun revelaEndereco(linha: Int, coluna: Int, soundPool: SoundPool, somSemVirus: Int, somVirus: Int, somDerrota: Int, somVitoria: Int) {
         // Obtém objeto correspondente
         val endereco = mapaEnderecos[linha][coluna]
 
@@ -62,15 +63,30 @@ class Mapa(val jogador: Jogador, val adversario: Jogador, var vm : MainViewModel
         val statusMapa = checaStatusMapa()
 
         // Jogador perdeu
-        if (statusMapa == -1) vm.resultadoInspecaoAtual = ResultadoInspecao.ACABOU_MEMORIA
+        if (statusMapa == -1) {
+            vm.resultadoInspecaoAtual = ResultadoInspecao.ACABOU_MEMORIA
+            soundPool.play(somDerrota, 1f, 1f, 1, 0, 1f)
+        }
         // Jogador venceu
-        else if (statusMapa == 1) vm.resultadoInspecaoAtual = ResultadoInspecao.REVELOU_TUDO
+        else if (statusMapa == 1) {
+            vm.resultadoInspecaoAtual = ResultadoInspecao.REVELOU_TUDO
+            soundPool.play(somVitoria, 1f, 1f, 1, 0, 1f)
+        }
         // Repete jogada
-        else if (endereco.contemVirus() == false && adjacentesNaoContemVirus) vm.resultadoInspecaoAtual = ResultadoInspecao.REPETE_JOGADA
+        else if (endereco.contemVirus() == false && adjacentesNaoContemVirus) {
+            vm.resultadoInspecaoAtual = ResultadoInspecao.REPETE_JOGADA
+            soundPool.play(somSemVirus, 1f, 1f, 1, 0, 1f)
+        }
         // Era vírus
-        else if (endereco.contemVirus()) vm.resultadoInspecaoAtual = ResultadoInspecao.VIRUS
+        else if (endereco.contemVirus()) {
+            vm.resultadoInspecaoAtual = ResultadoInspecao.VIRUS
+            soundPool.play(somVirus, 1f, 1f, 1, 0, 1f)
+        }
         // Não era vírus
-        else vm.resultadoInspecaoAtual = ResultadoInspecao.NAO_VIRUS
+        else {
+            vm.resultadoInspecaoAtual = ResultadoInspecao.NAO_VIRUS
+            soundPool.play(somSemVirus, 1f, 1f, 1, 0, 1f)
+        }
     }
 
     fun visitaEnderecoAdjacente(enderecoVisitado: Endereco): Boolean {

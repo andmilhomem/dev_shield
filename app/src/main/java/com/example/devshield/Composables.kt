@@ -63,6 +63,8 @@ import androidx.compose.foundation.draganddrop.dragAndDropTarget
 import androidx.compose.ui.draganddrop.mimeTypes
 import androidx.compose.ui.draganddrop.toAndroidDragEvent
 import android.content.ClipDescription
+import android.content.Context
+import android.content.ContextWrapper
 import android.media.SoundPool
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.aspectRatio
@@ -101,8 +103,17 @@ fun TelaBase(vm: MainViewModel) {
         mapaAtual = vm.mapaJogador2
     }
 
-    // Variável necessária para encerra aplicação
-    val activity = LocalContext.current as? Activity
+    // Variável necessária para encerrar aplicação
+    fun Context.findActivity(): Activity? = when (this) {
+        is Activity -> this
+        is ContextWrapper -> baseContext.findActivity()
+        else -> null
+    }
+
+    val context = LocalContext.current
+    val activity = context.findActivity()
+
+    //val activity = LocalContext.current as? Activity
 
     // Ícones dos virus
     val icones = listOf(
@@ -113,26 +124,17 @@ fun TelaBase(vm: MainViewModel) {
         Icons.Default.Storm)
 
     // Sons
-    val context = LocalContext.current
-
     val soundPool = remember { SoundPool.Builder().setMaxStreams(1).build() }
 
-    val respostaCerta = remember { soundPool.load(context, R.raw.respostacerta, 1) }
-    val respostaErrada = remember { soundPool.load(context, R.raw.respostaerrada, 2) }
-    val virus = remember { soundPool.load(context, R.raw.virus, 3) }
-    val semVirus = remember { soundPool.load(context, R.raw.semvirus, 4) }
-    val vitoria = remember { soundPool.load(context, R.raw.vitoria, 5) }
-    val derrota = remember { soundPool.load(context, R.raw.derrota, 6) }
-    val clickNeutro = remember { soundPool.load(context, R.raw.clickneutro, 7) }
+    val somRespostaCerta = remember { soundPool.load(context, R.raw.respostacerta, 1) }
+    val somRespostaErrada = remember { soundPool.load(context, R.raw.respostaerrada, 2) }
+    val somVirus = remember { soundPool.load(context, R.raw.virus, 3) }
+    val somSemVirus = remember { soundPool.load(context, R.raw.semvirus, 4) }
+    val somVitoria = remember { soundPool.load(context, R.raw.vitoria, 5) }
+    val somDerrota = remember { soundPool.load(context, R.raw.derrota, 6) }
+    val somClickNeutro = remember { soundPool.load(context, R.raw.clickneutro, 7) }
 
     DisposableEffect(Unit) { onDispose { soundPool.release() } }
-
- //   soundPool.play(clickNeutro, 1f, 1f, 1, 0, 1f)
-//    Button(onClick = { soundPool.play(soundId, 1f, 1f, 1, 0, 1f) }) {
-//        Text("Tocar som")
-//    }
-
-
 
 // Tela base
     Column(modifier = Modifier
@@ -288,14 +290,22 @@ fun TelaBase(vm: MainViewModel) {
                     if (vm.telaAtual in listOf(Tela.NOVO_MAPA, Tela.CONDUTA) || (vm.telaAtual == Tela.FEEDBACK && vm.jogadorAtual == 2)) {
                         var acao: () -> Unit = {}
                         if (vm.telaAtual == Tela.NOVO_MAPA) {
-                            if (vm.jogadorAtual == 1) acao = { vm.telaAtual = Tela.NOVO_JOGO }
-                            else acao = { vm.jogadorAtual = 1 }
+                            if (vm.jogadorAtual == 1) acao = {
+                                vm.telaAtual = Tela.NOVO_JOGO
+                            }
+                            else acao = {
+                                vm.jogadorAtual = 1
+                            }
                         }
                         else if (vm.telaAtual == Tela.CONDUTA) {
-                            acao = { vm.telaAtual = Tela.SITUACAO }
+                            acao = {
+                                vm.telaAtual = Tela.SITUACAO
+                            }
                         }
                         else {
-                            acao = { vm.jogadorAtual = 1 }
+                            acao = {
+                                vm.jogadorAtual = 1
+                            }
                         }
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -495,7 +505,7 @@ fun TelaBase(vm: MainViewModel) {
                                                 .aspectRatio(1f)
                                                 .border(width = 2.dp, color = Color.Black)
                                                 .clickable(enabled = vm.resultadoInspecaoAtual == ResultadoInspecao.PENDENTE || vm.resultadoInspecaoAtual == ResultadoInspecao.REPETE_JOGADA) {
-                                                    mapaAtual.revelaEndereco(i,j)
+                                                    mapaAtual.revelaEndereco(i,j, soundPool, somSemVirus, somVirus, somDerrota, somVitoria)
                                                 }
                                         }
                                     }
@@ -792,7 +802,7 @@ fun TelaBase(vm: MainViewModel) {
                                     tint = Color.Black,
                                     modifier = Modifier
                                         .size(60.dp)
-                                        .clickable { exibeEfeitoConduta(vm, Conduta.BOA) }
+                                        .clickable { exibeEfeitoConduta(vm, Conduta.BOA, soundPool, somRespostaCerta, somRespostaErrada) }
                                 )
                                 Icon(
                                     imageVector = Icons.Default.ThumbDown,
@@ -800,7 +810,7 @@ fun TelaBase(vm: MainViewModel) {
                                     tint = Color.Black,
                                     modifier = Modifier
                                         .size(60.dp)
-                                        .clickable { exibeEfeitoConduta(vm, Conduta.MA)  }
+                                        .clickable { exibeEfeitoConduta(vm, Conduta.MA, soundPool, somRespostaCerta, somRespostaErrada)  }
                                 )
                             }
                         }
@@ -818,7 +828,7 @@ fun TelaBase(vm: MainViewModel) {
                                             vm.jogador1.nome = nomeJogador1
                                             vm.jogador2.nome = nomeJogador2
                                             editaMapa(vm)
-                                            soundPool.play(clickNeutro, 1f, 1f, 1, 0, 1f)
+                                            soundPool.play(somClickNeutro, 1f, 1f, 1, 0, 1f)
                                         }
                                     } else {
                                         {}
@@ -827,7 +837,9 @@ fun TelaBase(vm: MainViewModel) {
                             }
                             else if (vm.telaAtual == Tela.SITUACAO) {
                                 textoBotao = "avaliar conduta"
-                                acao = { exibeConduta(vm) }
+                                acao = {
+                                    exibeConduta(vm)
+                                }
                             }
                             else if (vm.telaAtual == Tela.EFEITO_CONDUTA) {
                                 textoBotao = "inspecionar SSD"
@@ -835,16 +847,23 @@ fun TelaBase(vm: MainViewModel) {
                             }
                             else if (vm.telaAtual == Tela.ENCERRAMENTO) {
                                 textoBotao = "receber feedback"
-                                acao = { exibeFeedback(vm, 1) }
+                                acao = {
+                                    exibeFeedback(vm, 1)
+                                }
                             }
                             else if (vm.telaAtual == Tela.FEEDBACK) {
                                 if (vm.jogadorAtual == 1) {
                                     textoBotao = "continuar feedback"
-                                    acao = { exibeFeedback(vm, 2) }
+                                    acao = {
+                                        exibeFeedback(vm, 2)
+                                    }
                                 }
                                 else {
                                     textoBotao = "jogar novamente"
-                                    acao = { reiniciaJogo(vm) }
+                                    acao = {
+                                        reiniciaJogo(vm)
+                                        soundPool.play(somClickNeutro, 1f, 1f, 1, 0, 1f)
+                                    }
                                 }
                             }
                             // Cria botão
@@ -904,10 +923,14 @@ fun TelaBase(vm: MainViewModel) {
                             }
                         // Jogador perdeu
                         else if (vm.resultadoInspecaoAtual == ResultadoInspecao.ACABOU_MEMORIA)
-                            acao = { encerraJogo(vm, adversario.id) }
+                            acao = {
+                                encerraJogo(vm, adversario.id)
+                            }
                         // Jogador venceu
                         else if (vm.resultadoInspecaoAtual == ResultadoInspecao.REVELOU_TUDO)
-                            acao = { encerraJogo(vm, jogadorAtual.id) }
+                            acao = {
+                                encerraJogo(vm, jogadorAtual.id)
+                            }
 
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowForward,
@@ -924,7 +947,9 @@ fun TelaBase(vm: MainViewModel) {
                             contentDescription = "Continuar",
                             tint = Color.Black,
                             modifier = Modifier
-                                .clickable { vm.jogadorAtual = 2 }
+                                .clickable {
+                                    vm.jogadorAtual = 2
+                                }
                                 .size(40.dp)
                         )
                     }

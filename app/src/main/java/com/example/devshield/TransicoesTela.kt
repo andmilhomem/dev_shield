@@ -1,5 +1,6 @@
 package com.example.devshield
 
+import android.media.SoundPool
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -69,7 +70,7 @@ fun exibeConduta(vm: MainViewModel) {
     vm.telaAtual = Tela.CONDUTA
 }
 
-fun exibeEfeitoConduta(vm: MainViewModel, avaliacaoJogador: Conduta) {
+fun exibeEfeitoConduta(vm: MainViewModel, avaliacaoJogador: Conduta, soundPool: SoundPool, somRespostaCerta: Int, somRespostaErrada: Int) {
     // Identifica jogador
     val jogador: Jogador
     if (vm.jogadorAtual == 1) jogador = vm.jogador1
@@ -80,6 +81,7 @@ fun exibeEfeitoConduta(vm: MainViewModel, avaliacaoJogador: Conduta) {
         vm.desempenhoJogadaAtual = DesempenhoJogada.ACERTOU
         incrementaPontuacao(jogador)
         jogador.mapa.numBackupsRestantes++
+        soundPool.play(somRespostaCerta, 1f, 1f, 1, 0, 1f)
     }
     // Jogador errou
     else {
@@ -88,6 +90,7 @@ fun exibeEfeitoConduta(vm: MainViewModel, avaliacaoJogador: Conduta) {
             vm.desempenhoJogadaAtual = DesempenhoJogada.ERROU_CONDUTA_E_BOA
         else
             vm.desempenhoJogadaAtual = DesempenhoJogada.ERROU_CONDUTA_E_MA
+        soundPool.play(somRespostaErrada, 1f, 1f, 1, 0, 1f)
     }
     vm.telaAtual = Tela.EFEITO_CONDUTA
 }
@@ -95,7 +98,7 @@ fun exibeMapa(vm: MainViewModel) {
     vm.resultadoInspecaoAtual = ResultadoInspecao.PENDENTE
     vm.telaAtual = Tela.INSPECAO
 }
-
+/*
 fun inspecionaEndereco(vm: MainViewModel, linha: Int, coluna: Int)  {
     // Identifica objeto do mapa atual
     var mapaAtual: Mapa
@@ -105,7 +108,7 @@ fun inspecionaEndereco(vm: MainViewModel, linha: Int, coluna: Int)  {
     // Revela endereço indicado
     mapaAtual.revelaEndereco(linha, coluna)
 }
-
+*/
 fun encerraJogo(vm: MainViewModel, vencedor: Int) {
     vm.vencedor = vencedor
     vm.jogadorAtual = 1
