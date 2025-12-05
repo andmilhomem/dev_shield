@@ -98,17 +98,6 @@ fun exibeMapa(vm: MainViewModel) {
     vm.resultadoInspecaoAtual = ResultadoInspecao.PENDENTE
     vm.telaAtual = Tela.INSPECAO
 }
-/*
-fun inspecionaEndereco(vm: MainViewModel, linha: Int, coluna: Int)  {
-    // Identifica objeto do mapa atual
-    var mapaAtual: Mapa
-    if (vm.jogadorAtual == 1) mapaAtual = vm.mapaJogador1
-    else mapaAtual = vm.mapaJogador2
-
-    // Revela endereço indicado
-    mapaAtual.revelaEndereco(linha, coluna)
-}
-*/
 fun encerraJogo(vm: MainViewModel, vencedor: Int) {
     vm.vencedor = vencedor
     vm.jogadorAtual = 1

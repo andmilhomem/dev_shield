@@ -2,25 +2,129 @@
   {
     "id": 0,
     "titulo": "SQL injection",
-    "situacao": "Minha aplicação realiza consultas SQL ao banco de dados com base em informações fornecidas pelos usuários",
-    "boaConduta": "Ao construir as consultas SQL, minha aplicação utiliza a técnica da parametrização para prevenir que um usuário malicioso tente modificar a natureza da operação.",
-    "maConduta": "Ao construir as consultas SQL, minha aplicação simplesmente concatena as entradas fornecidas pelo usuário, sem validação ou tratamento.",
+    "situacao": "Sua aplicação realiza consultas SQL ao banco de dados com base em informações fornecidas pelos usuários.",
+    "boaConduta": "Ao construir as consultas SQL, sua aplicação utiliza a técnica da parametrização para prevenir que um usuário malicioso tente modificar a natureza da operação.",
+    "maConduta": "Ao construir as consultas SQL, sua aplicação concatena as entradas fornecidas pelo usuário, sem validação ou tratamento.",
     "efeitoMaConduta": "Um usuário malicioso poderia manipular uma operação para realizar consultas indevidas, alterar dados do banco ou modificar permissões de acesso."
   },
   {
     "id": 1,
     "titulo": "Insecure Direct Object Reference (IDOR)",
-    "situacao": "Minha aplicação web contém uma área de acesso restrito a administradores",
-    "boaConduta": "Ao receber uma requisição restrita a administradores (/admin), minha aplicação valida permissões de acesso com base no usuário efetivamente autenticado, não em parâmetros fornecidos pela URL.",
-    "maConduta": "Ao receber uma requisição restrita a administradores (/admin), minha aplicação apenas verifica se o identificador de usuário informado como parâmetro na URL (?user_id=123) é válido.",
+    "situacao": "Sua aplicação web contém uma área de acesso restrito a administradores.",
+    "boaConduta": "Ao receber uma requisição restrita a administradores (/admin), sua aplicação valida permissões de acesso com base no usuário efetivamente autenticado, não em parâmetros fornecidos pela URL.",
+    "maConduta": "Ao receber uma requisição restrita a administradores (/admin), sua aplicação apenas verifica se o identificador de usuário informado como parâmetro na URL (?user_id=123) é válido.",
     "efeitoMaConduta": "Um cliente malicioso, de posse de um identificador válido, poderia acessar a área restrita sem autenticação."
   },
   {
     "id": 2,
     "titulo": "Insecure Direct Object Reference (IDOR)",
-    "situacao": "Minha aplicação web de comércio eletrônico prevê uma rota específica para cancelamento de pedidos, com base em seu número identificador (/cancelar_pedido?id=123)",
-    "boaConduta": "Ao receber uma requisição de cancelamento de pedido, antes de dar acesso à página de cancelamento, minha aplicação verifica se o usuário que fez o pedido originalmente corresponde ao usuário autenticado que está realizando a requisição de cancelamento.",
-    "maConduta": "Ao receber uma requisição de cancelamento de pedido, minha aplicação dá acesso à página de cancelamento desde que o identificador fornecido na URL seja válido.",
+    "situacao": "Sua aplicação web de comércio eletrônico prevê uma rota específica para cancelamento de pedidos, com base em seu número identificador (/cancelar_pedido?id=123).",
+    "boaConduta": "Ao receber uma requisição de cancelamento de pedido, antes de dar acesso à página de cancelamento, sua aplicação verifica se o usuário que fez o pedido originalmente corresponde ao usuário autenticado que está realizando a requisição de cancelamento.",
+    "maConduta": "Ao receber uma requisição de cancelamento de pedido, sua aplicação dá acesso à página de cancelamento desde que o identificador fornecido na URL seja válido.",
     "efeitoMaConduta": "Um usuário malicioso, de posse de um identificador válido, poderia cancelar pedidos de terceiros."
+  },
+  {
+    "id": 3,
+    "titulo": "Armazenamento de senhas",
+    "situacao": "Sua aplicação exige autenticação de usuários.",
+    "boaConduta": "Ao cadastrar um novo usuário, sua aplicação utiliza uma função de resumo criptográfico (hash) para armazenar no banco de dados não a senha original, mas o valor da função correspondente.",
+    "maConduta": "Ao cadastrar um novo usuário, sua aplicação armazena a senha diretamente no banco de dados.",
+    "efeitoMaConduta": "Caso ocorra um vazamento, as senhas dos usuários serão reveladas."
+  },
+  {
+    "id": 4,
+    "titulo": "Bibliotecas confiáveis",
+    "situacao": "Para acelerar o desenvolvimento, você utilizou bibliotecas externas que já haviam implementado funcionalidades necessárias à sua aplicação.",
+    "boaConduta": "Você obteve todas as bibliotecas externas em repositórios oficiais, checou a reputação dos responsáveis, confirmou que a assinatura digital ou hash dos arquivos eram válidos e avaliou todas as vulnerabilidades conhecidas das dependências.",
+    "maConduta": "Você incorporou à sua aplicação uma biblioteca de origem desconhecida.",
+    "efeitoMaConduta": "Além de implementar as funcionalidades desejadas, a biblioteca poderia incluir código malicioso."
+  },
+  {
+    "id": 5,
+    "titulo": "Server-Side Request Forgery (SSRF)",
+    "situacao": "Você criou uma aplicação para testar responsividade: o usuário fornece a URL de seu site e sua aplicação simula a tela de um dispositivo móvel.",
+    "boaConduta": "Antes de acessar a URL fornecida, você verifica se ela tenta acessar servidor local (localhost) ou redes internas privadas, bloqueia qualquer tentativa de redirecionamento, limita a requisição a protocolos seguros (http:// ou https://) e restringe o tempo ou tamanho da resposta.",
+    "maConduta": "Antes de acessar a URL fornecida, você não faz nenhum tipo de verificação da URL.",
+    "efeitoMaConduta": "Um usuário malicioso poderia fazer uma requisição ao servidor local (localhost) e, assim, explorar sem permissão seus recursos internos."
+  },
+  {
+    "id": 6,
+    "titulo": "Token de sessão com prazo de expiração",
+    "situacao": "Sua aplicação web utiliza tokens de sessão para dispensar os clientes de se autenticarem a cada nova requisição.",
+    "boaConduta": "Ao criar um token de sessão, sua aplicação fixa um prazo de expiração.",
+    "maConduta": "Ao criar um token de sessão, sua aplicação não estabeleceu um prazo de expiração.",
+    "efeitoMaConduta": "Um atacante teria tempo indefinido para obter e utilizar indevidamente o token gerado."
+  },
+  {
+    "id": 7,
+    "titulo": "Logs de tentativas de acesso",
+    "situacao": "Apenas usuários autenticados podem utilizar sua aplicação web.",
+    "boaConduta": "Quando um cliente realiza uma tentativa mal-sucedida de autenticação, sua aplicação registra o nome de usuário, a data e o horário da operação e o endereço IP do cliente.",
+    "maConduta": "Quando um cliente realiza uma tentativa mal-sucedida de autenticação, sua aplicação não registra informações sobre a operação.",
+    "efeitoMaConduta": "Sua aplicação não é capaz de identificar e tratar ataques de força bruta, em que um cliente mal-intencionado realiza sucessivas tentativas de autenticação até descobrir a senha de um usuário."
+  },
+  {
+    "id": 8,
+    "titulo": "Insecure Direct Object Reference (IDOR)",
+    "situacao": "Sua aplicação web adota a arquitetura RESTful: as requisições de manipulação de recursos os identificam explicitamente nas URLs.",
+    "boaConduta": "Ao atribuir identificadores aos recursos que manipula, sua aplicação utiliza Universally Unique Identifiers (UUIDs) de 128 bits para reduzir a previsibilidade desses identificadores.",
+    "maConduta": "Ao atribuir identificadores aos recursos que manipula, sua aplicação adota numeração inteira sequencial, identicando os recursos em ordem crescente conforme seu momento de criação.",
+    "efeitoMaConduta": "Um usuário malicioso poderia, assim, facilmente descobrir os identificadores dos recursos para manipulá-los indevidamente."
+  },
+  {
+    "id": 9,
+    "titulo": "Envio de cookies com tokens de sessão",
+    "situacao": "Após autenticação do usuário, sua aplicação web envia ao cliente um token de sessão como cookie, que será reenviado ao servidor em futuras requisições do cliente para dispensar nova autenticação.",
+    "boaConduta": "Ao enviar um cookie com token de sessão ao cliente, sua aplicação sempre exige que o cookie seja transmitido por via criptografada (atributo Secure como true), veda que scripts JavaScript acessem o cookie (atributo HttpOnly como true) e limita a possibilidade de o navegador incluir automaticamente o cookie em requisições feitas a partir de outros sites (atributo SameSite como Lax ou Strict).",
+    "maConduta": "Ao enviar um cookie com token de sessão ao cliente, sua aplicação não especifica valores para os atributos Secure, HttpOnly e SameSite.",
+    "efeitoMaConduta": "Um atacante poderia utilizar indevidamente o token de sessão, após interceptar o cookie durante a comunicação entre cliente e servidor, acessar o cookie no cliente por meio da injeção de script JavaScript ou induzir o navegador a enviar o cookie ao servidor em requisição feita a partir de outro site, malicioso."
+  },
+  {
+    "id": 10,
+    "titulo": "Cross-Site Scripting (XSS)",
+    "situacao": "Sua aplicação web exibe para os usuários conteúdo textual produzido por outros usuários (como comentários e postagens).",
+    "boaConduta": "Ao incorporar os conteúdos fornecidos por usuários ao HTML, sua aplicação transforma caracteres especiais (como <, >, &, \") em simples texto (escaping), usa a função textContent em vez de innerHTML e utiliza a Content-Security-Policy (CSP) do cabeçalho HTTP para limitar o tipo de script que pode ser executado.",
+    "maConduta": "Ao incorporar os conteúdos fornecidos por usuários ao HTML, sua aplicação não adota nenhuma medida de sanitização dos dados.",
+    "efeitoMaConduta": "Um usuário malicioso poderia inserir um script JavaScript no conteúdo fornecido: quando esse conteúdo fosse reproduzido por outro usuário, a ação mal-intencionada seria executada indevidamente."
+  },
+  {
+    "id": 11,
+    "titulo": "Tratamento de exceções",
+    "situacao": "Sua aplicação define rotinas de tratamento de erros que ocorram durante a execução do programa (exceções).",
+    "boaConduta": "Ao definir uma rotina de tratamento de exceção, sua aplicação avisa o usuário sobre o erro por meio de uma mensagem genérica e registra as informações detalhadas sobre a ocorrência em logs internos de acesso restrito.",
+    "maConduta": "Ao definir uma rotina de tratamento de exceção, sua aplicação imprime na tela as informações técnicas completas sobre o erro.",
+    "efeitoMaConduta": "Um usuário malicioso poderia facilmente acessar informações sobre a estrutura interna do código, os caminhos de arquivos no servidor ou as tecnologias e bibliotecas usadas."
+  },
+  {
+    "id": 12,
+    "titulo": "Modo de depuração (debug mode)",
+    "situacao": "Ao desenvolver sua aplicação, você utiliza o modo de depuração (debug mode) para auxiliá-lo a diagnosticar, entender e corrigir falhas (bugs).",
+    "boaConduta": "Ao disponibilizar a aplicação em ambiente de produção, você desativa o modo de depuração para limitar o acesso dos usuários a detalhes técnicos da sua aplicação.",
+    "maConduta": "Ao disponibilizar a aplicação em ambiente de produção, você mantém ativo o modo de depuração.",
+    "efeitoMaConduta": "Um usuário malicioso poderia acessar informações sobre a estrutura interna do código, os caminhos de arquivos no servidor ou as tecnologias e bibliotecas usadas."
+  },
+  {
+    "id": 13,
+    "titulo": "Validação de JSON Web Token (JWT)",
+    "situacao": "Sua aplicação web utiliza o padrão JSON Web Token (JWT) para transmitir informações entre cliente e servidor.",
+    "boaConduta": "Ao receber um token JWT, sua aplicação sempre verifica a assinatura (para garantir a autenticidade e a integridade da mensagem) e a data de expiração (para evitar o uso de tokens antigos).",
+    "maConduta": "Ao receber um token JWT, sua aplicação o decodifica e utiliza as informações transmitidas (payload) sem verificar a assinatura ou a data de expiração.",
+    "efeitoMaConduta": "Um atacante poderia transmitir uma mensagem maliciosa com sucesso, desde que observasse o formato do padrão JWT."
+  },
+  {
+    "id": 14,
+    "titulo": "LocalStorage",
+    "situacao": "Sua aplicação web utiliza o espaço de armazenamento LocalStorage para possibilitar que determinadas informações úteis ao seu funcionamento persistam no navegador do cliente mesmo após ele fechá-lo.",
+    "boaConduta": "Sua aplicação jamais armazena no LocalStorage informações sensíveis ou críticas. Além disso, ela remove dados do LocalStorage assim que eles deixam de ser úteis.",
+    "maConduta": "Sua aplicação faz uso indiscriminado do LocalStorage, sem considerar o tipo de informação armazenada.",
+    "efeitoMaConduta": "Como nativamente não há criptografia (os dados são guardados como puro texto) nem prazo definido de persistência, um atacante que acessasse o LocalStorage obteria facilmente todas as informações armazenadas."
+  },
+  {
+    "id": 15,
+    "titulo": "Denial of Service (DoS)",
+    "situacao": "Sua aplicação web fornece serviços públicos que demandam intensa atividade de processamento a partir de requisições de clientes.",
+    "boaConduta": "Sua aplicação armazena registros (logs) das requisições dos clientes, monitora continuamente suas atividades e estabelece limites de consumo de recursos, como número máximo de requisições por usuário, sessão ou IP ou tamanho máximo da carga útil das requisições (payload).",
+    "maConduta": "Sua aplicação não monitora nem limita a utilização de recursos pelos clientes.",
+    "efeitoMaConduta": "Um usuário malicioso poderia facilmente sobrecarregá-la com uma quantidade massiva de requisições custosas e, assim, causar a indisponibilidade do serviço."
   }
 ]

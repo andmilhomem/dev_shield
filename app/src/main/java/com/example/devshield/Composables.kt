@@ -709,11 +709,14 @@ fun TelaBase(vm: MainViewModel) {
                                             .fillMaxWidth(),
                                         contentAlignment = Alignment.Center
                                     ) {
+                                        val scrollState = rememberScrollState()
                                         Text(
                                             text = textoDesempenho,
                                             color = Color.Black,
                                             fontSize = 20.sp,
-                                            textAlign = TextAlign.Center
+                                            textAlign = TextAlign.Center,
+                                            modifier = Modifier
+                                                .verticalScroll(scrollState)
                                         )
                                     }
                                 }
