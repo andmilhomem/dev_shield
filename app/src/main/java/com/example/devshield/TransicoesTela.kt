@@ -100,7 +100,7 @@ fun exibeMapa(vm: MainViewModel) {
 }
 fun encerraJogo(vm: MainViewModel, vencedor: Int) {
     vm.vencedor = vencedor
-    vm.jogadorAtual = 1
+    vm.jogadorAtual = vencedor
     vm.telaAtual = Tela.ENCERRAMENTO
 }
 
